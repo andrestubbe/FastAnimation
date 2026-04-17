@@ -1,6 +1,6 @@
 # FastAnimation
 
-> **Lightweight Java timeline engine** — Orchestrate multiple tweens and keyframes
+> **Lightweight Java timeline engine** — Orchestrate multiple [FastTween](https://github.com/andrestubbe/FastTween) sequences, parallel execution, and keyframes
 
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.java.com)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-orange.svg)](https://maven.apache.org)
