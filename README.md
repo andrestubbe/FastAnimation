@@ -29,7 +29,7 @@ FastAnimation parallel = FastAnimation.parallel(
 
 ## Installation
 
-### JitPack
+### Maven (JitPack)
 
 ```xml
 <repositories>
@@ -44,6 +44,18 @@ FastAnimation parallel = FastAnimation.parallel(
     <artifactId>fastanimation</artifactId>
     <version>v1.0.0</version>
 </dependency>
+```
+
+### Gradle (JitPack)
+
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.andrestubbe:fastanimation:v1.0.0'
+}
 ```
 
 ---
