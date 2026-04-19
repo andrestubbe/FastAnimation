@@ -31,9 +31,8 @@
     <developers>
         <developer>
             <name>FastJava Team</name>
-            <email>info@fastjava.dev</email>
-            <organization>FastJava</organization>
-            <organizationUrl>https://fastjava.dev</organizationUrl>
+                        <organization>FastJava</organization>
+            <organizationUrl>https://github.com/andrestubbe</organizationUrl>
         </developer>
     </developers>
 

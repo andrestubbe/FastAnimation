@@ -1,4 +1,4 @@
-# FastAnimation
+# FastAnimation — Timeline orchestration for Java
 
 > **Lightweight Java timeline engine** — Orchestrate multiple [FastTween](https://github.com/andrestubbe/FastTween) sequences, parallel execution, and keyframes
 
