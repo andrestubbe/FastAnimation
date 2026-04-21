@@ -6,6 +6,7 @@
 [![Maven](https://img.shields.io/badge/Maven-3.9+-orange.svg)](https://maven.apache.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![JitPack](https://img.shields.io/badge/JitPack-ready-green.svg)](https://jitpack.io)
+[![Zero Dependencies](https://img.shields.io/badge/Zero%20Dependencies-✓-success.svg)]()
 
 ---
 
@@ -57,6 +58,12 @@ dependencies {
     implementation 'com.github.andrestubbe:fastanimation:v1.0.0'
 }
 ```
+
+### Direct Download
+
+Download JAR from [Releases](https://github.com/andrestubbe/FastAnimation/releases)
+
+**Zero Dependencies:** Pure Java, no JNI or native libraries required.
 
 ---
 
