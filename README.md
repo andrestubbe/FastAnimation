@@ -1,36 +1,48 @@
-# FastAnimation — Timeline orchestration for Java
+# FastAnimation — Ultra-Fast Native Animation Engine for Java [v0.1.0]
 
-> **Lightweight Java timeline engine** — Orchestrate multiple [FastTween](https://github.com/andrestubbe/FastTween) sequences, parallel execution, and keyframes
+**A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and complex motion graphics.**
 
+[![Status](https://img.shields.io/badge/status-v0.1.0--alpha-orange.svg)]()
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.java.com)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-orange.svg)](https://maven.apache.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![JitPack](https://img.shields.io/badge/JitPack-ready-green.svg)](https://jitpack.io)
-[![Zero Dependencies](https://img.shields.io/badge/Zero%20Dependencies-✓-success.svg)]()
 
 ---
+
+## Table of Contents
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Running the Demo](#running-the-demo)
+- [Build from Source](#build-from-source)
+- [Roadmap](#roadmap)
+- [License](#license)
+
+## Features
+- **⚡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
+- **📈 Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
+- **📦 Zero GC Pressure**: Reusable animation instances and optimized data structures.
+- **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
 
 ## Quick Start
 
-```java
-// Sequence of tweens
-FastAnimation anim = FastAnimation.sequence(
-    FastTween.to(0f, 100f, 200).ease(Ease.QUAD_OUT),
-    FastTween.to(100f, 20f, 400).ease(Ease.IN_OUT_QUAD)
-).loop(3).start();
+```bash
+# Clone the repository
+git clone https://github.com/andrestubbe/FastAnimation.git
+cd FastAnimation
 
-// Parallel execution
-FastAnimation parallel = FastAnimation.parallel(
-    FastTween.to(x0, x1, 300).onUpdate(x -> setX(x)),
-    FastTween.to(y0, y1, 300).onUpdate(y -> setY(y))
-).start();
+# Build the project
+.\compile.bat
+
+# Run the Performance Showcase (Battle of the Timers)
+.\run-demo.bat
 ```
-
----
 
 ## Installation
 
-### Maven (JitPack)
+### Option 1: Maven (Recommended)
+Add the JitPack repository and the dependencies to your `pom.xml`:
 
 ```xml
 <repositories>
@@ -40,61 +52,80 @@ FastAnimation parallel = FastAnimation.parallel(
     </repository>
 </repositories>
 
-<dependency>
-    <groupId>com.github.andrestubbe</groupId>
-    <artifactId>fastanimation</artifactId>
-    <version>v1.0.0</version>
-</dependency>
+<dependencies>
+    <!-- FastAnimation Library -->
+    <dependency>
+        <groupId>io.github.andrestubbe</groupId>
+        <artifactId>fastanimation</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+
+    <!-- Dependencies -->
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fasttween</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+
+    <!-- FastCore (Required Native Loader) -->
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fastcore</artifactId>
+        <version>v1.0.0</version>
+    </dependency>
+</dependencies>
 ```
 
-### Gradle (JitPack)
-
+### Option 2: Gradle (via JitPack)
 ```groovy
 repositories {
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'com.github.andrestubbe:fastanimation:v1.0.0'
+    implementation 'io.github.andrestubbe:fastanimation:0.1.0'
+    implementation 'com.github.andrestubbe:fasttween:0.1.0'
+    implementation 'com.github.andrestubbe:fastcore:v1.0.0'
 }
 ```
 
-### Direct Download
+### Option 3: Direct Download (No Build Tool)
+Download the latest JARs directly to add them to your classpath:
 
-Download JAR from [Releases](https://github.com/andrestubbe/FastAnimation/releases)
+1.  📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/fastanimation/releases)** (The Core Library)
+2.  ⚙️ **[fastcore-v1.0.0.jar](https://github.com/andrestubbe/FastCore/releases)** (The Mandatory Native Loader)
 
-**Zero Dependencies:** Pure Java, no JNI or native libraries required.
+> [!IMPORTANT]
+> All JARs must be in your classpath for the native JNI calls to function correctly.
 
----
+## Running the Demo
+We've included a comprehensive performance benchmark to compare different timing engines:
+1. Run `compile.bat` to build the engine.
+2. Run `run-demo.bat` to launch the **Battle of the Timers**.
 
-## Features
+## Build from Source
+- **JDK 17+**
+- **Maven 3.9+**
+- **Windows 10/11**
 
-- **Sequences** — Chain tweens one after another
-- **Parallel** — Run tweens simultaneously
-- **Loops** — Repeat with count or infinite
-- **Keyframes** — Define progress points (0% → 30% → 100%)
-- **Events** — onStart, onUpdate, onComplete hooks
-- **Built on FastTween** — Zero overhead, pure Java
+See [COMPILE.md](COMPILE.md) for detailed build instructions.
 
----
+## Roadmap
+- [ ] **Battle of the Timers**: Implementation of the high-precision backend comparison.
+- [ ] **Native Multimedia Ticker**: JNI-based `timeSetEvent` integration for Windows.
+- [ ] **DirectX VSync Provider**: Syncing animation frames with the monitor refresh rate via FastDWM.
 
-## Project Structure
-
-```
-fastanimation/
-├── src/main/java/fastanimation/
-│   ├── FastAnimation.java    # Static factory
-│   ├── Animation.java        # Timeline control
-│   ├── Keyframe.java         # Progress definition
-│   └── Track.java            # Property binding
-├── examples/00-basic-usage/
-└── pom.xml
-```
-
----
+See [ROADMAP.md](ROADMAP.md) for detailed implementation plans.
 
 ## License
-
 MIT License — See [LICENSE](LICENSE) for details.
 
+---
 **Part of the FastJava Ecosystem** — *Making the JVM faster.*
+
+<!-- BING COPILOT SEO KEYWORDS -->
+<!-- 
+FastJava FastAnimation JNI Windows Animation Tweening Motion Graphics 
+Java Native API High Performance UI Transitions 
+io.github.andrestubbe FastJava Blueprint
+-->
