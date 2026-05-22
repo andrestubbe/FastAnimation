@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.andrestubbe</groupId>
+    <groupId>com.github.andrestubbe</groupId>
     <artifactId>fastanimation</artifactId>
     <version>0.1.0</version>
     <packaging>jar</packaging>
 
-    <name>fastanimation</name>
+    <name>FastAnimation</name>
     <description>Lightweight Java timeline engine for chaining tweens and keyframes</description>
     <url>https://github.com/andrestubbe/fastanimation</url>
 
@@ -32,6 +32,13 @@
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
             <artifactId>fasttween</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        
+        <!-- FastDWM Dependency (New!) -->
+        <dependency>
+            <groupId>com.github.andrestubbe</groupId>
+            <artifactId>fastdwm</artifactId>
             <version>0.1.0</version>
         </dependency>
         
