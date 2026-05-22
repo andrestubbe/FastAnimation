@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fastanimation.examples</groupId>
-    <artifactId>basic-usage</artifactId>
+    <artifactId>examples</artifactId>
     <version>0.1.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <exec.mainClass>fastanimation.example.Demo</exec.mainClass>
+        <exec.mainClass>fastanimation.Demo</exec.mainClass>
     </properties>
 
     <repositories>
@@ -26,6 +26,11 @@
         <dependency>
             <groupId>io.github.andrestubbe</groupId>
             <artifactId>fastanimation</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.andrestubbe</groupId>
+            <artifactId>fasttheme</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>

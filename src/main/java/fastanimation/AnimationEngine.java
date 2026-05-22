@@ -1,169 +1,110 @@
 package fastanimation;
 
-import fasttween.Tween;
-
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Central time-based ticker for all animations.
- * 
- * <p>The AnimationEngine is the "motor" that drives all animations. It:
- * <ul>
- *   <li>Maintains a list of all active tweens</li>
- *   <li>Calls update(delta) every frame</li>
- *   <li>Removes finished tweens</li>
- *   <li>Provides precise delta time calculation</li>
- * </ul>
- * 
- * <p>Starts automatically when the first tween is added. Runs in a daemon
- * thread so it won't prevent JVM shutdown.
- * 
- * @author FastJava Team
- * @version 1.0.0
+ * FastAnimation Engine - The high-precision heartbeat orchestrator.
  */
-public class AnimationEngine {
+public final class AnimationEngine {
     
-    private static final List<Tween> activeTweens = new ArrayList<>();
-    private static final List<Animation> activeAnimations = new ArrayList<>();
-    private static volatile boolean running = false;
+    public enum HeartbeatMode { JAVA, NATIVE_MM, NATIVE_VSYNC }
+    
+    private static final List<Animation> animations = new ArrayList<>();
+    private static final List<Animation> toAdd = new ArrayList<>();
+    private static final List<Animation> toRemove = new ArrayList<>();
+    
+    private static HeartbeatMode mode = HeartbeatMode.JAVA;
     private static Thread engineThread;
+    private static boolean running = false;
     
-    /**
-     * Adds a tween to the engine. Starts the engine if not running.
-     * 
-     * @param tween Tween to animate
-     */
-    public static void add(Tween tween) {
-        synchronized (activeTweens) {
-            activeTweens.add(tween);
-        }
-        ensureRunning();
+    private AnimationEngine() {}
+    
+    public static void setHeartbeatMode(HeartbeatMode mode) {
+        AnimationEngine.mode = mode;
+        restartEngine();
     }
     
-    /**
-     * Adds an animation to the engine. Starts the engine if not running.
-     * 
-     * @param animation Animation to process
-     */
     public static void add(Animation animation) {
-        synchronized (activeAnimations) {
-            activeAnimations.add(animation);
+        synchronized(toAdd) {
+            toAdd.add(animation);
         }
-        ensureRunning();
+        startEngine();
     }
     
-    /**
-     * Removes a tween from the engine.
-     * 
-     * @param tween Tween to remove
-     */
-    public static void remove(Tween tween) {
-        synchronized (activeTweens) {
-            activeTweens.remove(tween);
-        }
-    }
-    
-    /**
-     * Removes an animation from the engine.
-     * 
-     * @param animation Animation to remove
-     */
     public static void remove(Animation animation) {
-        synchronized (activeAnimations) {
-            activeAnimations.remove(animation);
-        }
-    }
-    
-    /**
-     * Stops the engine entirely.
-     */
-    public static void stop() {
-        running = false;
-        if (engineThread != null) {
-            engineThread.interrupt();
-        }
-    }
-    
-    /**
-     * Returns the number of active tweens.
-     * 
-     * @return Active tween count
-     */
-    public static int getActiveTweenCount() {
-        synchronized (activeTweens) {
-            return activeTweens.size();
-        }
-    }
-    
-    /**
-     * Returns the number of active animations.
-     * 
-     * @return Active animation count
-     */
-    public static int getActiveAnimationCount() {
-        synchronized (activeAnimations) {
-            return activeAnimations.size();
-        }
-    }
-    
-    private static void ensureRunning() {
-        if (!running) {
-            synchronized (AnimationEngine.class) {
-                if (!running) {
-                    startEngine();
-                }
-            }
+        synchronized(toRemove) {
+            toRemove.add(animation);
         }
     }
     
     private static void startEngine() {
+        if (running) return;
         running = true;
-        engineThread = new Thread(() -> {
-            long lastTime = System.nanoTime();
-            
-            while (running) {
-                long currentTime = System.nanoTime();
-                float deltaMs = (currentTime - lastTime) / 1_000_000f;
-                lastTime = currentTime;
-                
-                update(deltaMs);
-                
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }, "FastAnimation-Engine");
-        
+        engineThread = new Thread(AnimationEngine::engineLoop, "FastAnimation-Heartbeat");
         engineThread.setDaemon(true);
+        engineThread.setPriority(Thread.MAX_PRIORITY);
         engineThread.start();
     }
     
-    private static void update(float deltaMs) {
-        synchronized (activeTweens) {
-            Iterator<Tween> it = activeTweens.iterator();
-            while (it.hasNext()) {
-                Tween tween = it.next();
-                tween.update();
-                if (!tween.isRunning()) {
-                    it.remove();
+    public static void stop() {
+        running = false;
+        if (engineThread != null) engineThread.interrupt();
+    }
+    
+    private static void restartEngine() {
+        stop();
+        try { Thread.sleep(20); } catch (InterruptedException ignored) {}
+        startEngine();
+    }
+    
+    private static void engineLoop() {
+        long lastTime = System.nanoTime();
+        
+        while (running) {
+            long now = System.nanoTime();
+            float deltaMs = (now - lastTime) / 1_000_000.0f;
+            lastTime = now;
+            
+            // 1. Process pending changes (Fast Sync)
+            synchronized(toAdd) {
+                if (!toAdd.isEmpty()) {
+                    animations.addAll(toAdd);
+                    toAdd.clear();
                 }
             }
-        }
-        
-        synchronized (activeAnimations) {
-            Iterator<Animation> it = activeAnimations.iterator();
-            while (it.hasNext()) {
-                Animation anim = it.next();
+            synchronized(toRemove) {
+                if (!toRemove.isEmpty()) {
+                    animations.removeAll(toRemove);
+                    toRemove.clear();
+                }
+            }
+
+            // 2. High-speed Tick
+            for (Animation anim : animations) {
                 anim.update(deltaMs);
                 if (anim.isComplete()) {
-                    it.remove();
+                    synchronized(toRemove) { toRemove.add(anim); }
                 }
+            }
+            
+            // 3. Precision Timing
+            if (mode == HeartbeatMode.NATIVE_MM) {
+                fastdwm.FastDWM.createPeriodicTimer(1, () -> {}); // Ensure MM timer active
+                try { Thread.sleep(1); } catch (InterruptedException e) { break; }
+            } else if (mode == HeartbeatMode.NATIVE_VSYNC) {
+                fastdwm.FastDWM.waitForVSync();
+            } else {
+                try { Thread.sleep(5); } catch (InterruptedException e) { break; }
+            }
+
+            if (animations.isEmpty() && toAdd.isEmpty()) {
+                running = false;
+                break;
             }
         }
     }
+    
+    public static int getActiveAnimationCount() { return animations.size(); }
+    public static int getActiveTweenCount() { return animations.size(); } // Simplified
 }
