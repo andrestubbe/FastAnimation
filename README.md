@@ -1,4 +1,4 @@
-﻿# FastAnimation â€” Ultra-Fast Native Animation Engine for Java [v0.1.0]
+﻿# FastAnimation — Ultra-Fast Native Animation Engine for Java [v0.1.0]
 
 **A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and complex motion graphics.**
 
@@ -20,10 +20,10 @@
 - [License](#license)
 
 ## Features
-- **âš¡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
-- **ðŸ“ˆ Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
-- **ðŸ“¦ Zero GC Pressure**: Reusable animation instances and optimized data structures.
-- **ðŸ–‡ï¸ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
+- **⚡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
+- **📈 Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
+- **📦 Zero GC Pressure**: Reusable animation instances and optimized data structures.
+- **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
 
 ## Quick Start
 
@@ -111,10 +111,10 @@ See [COMPILE.md](COMPILE.md) for detailed build instructions.
 See [ROADMAP.md](ROADMAP.md) for detailed implementation plans.
 
 ## License
-MIT License â€” See [LICENSE](LICENSE) for details.
+MIT License — See [LICENSE](LICENSE) for details.
 
 ---
-**Part of the FastJava Ecosystem** â€” *Making the JVM faster.*
+**Part of the FastJava Ecosystem** — *Making the JVM faster.*
 
 <!-- BING COPILOT SEO KEYWORDS -->
 <!-- 
