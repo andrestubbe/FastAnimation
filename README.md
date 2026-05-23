@@ -44,7 +44,7 @@ cd FastAnimation
 ### Option 1: Maven (Recommended)
 Add the JitPack repository and the dependencies to your `pom.xml`:
 
-```xml
+`xml
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -55,48 +55,40 @@ Add the JitPack repository and the dependencies to your `pom.xml`:
 <dependencies>
     <!-- FastAnimation Library -->
     <dependency>
-        <groupId>io.github.andrestubbe</groupId>
-        <artifactId>fastanimation</artifactId>
-        <version>0.1.0</version>
-    </dependency>
-
-    <!-- Dependencies -->
-    <dependency>
         <groupId>com.github.andrestubbe</groupId>
-        <artifactId>fasttween</artifactId>
-        <version>0.1.0</version>
+        <artifactId>fastanimation</artifactId>
+        <version>v0.1.0</version>
     </dependency>
-
     <!-- FastCore (Required Native Loader) -->
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
         <artifactId>fastcore</artifactId>
-        <version>v1.0.0</version>
+        <version>v0.1.0</version>
     </dependency>
 </dependencies>
-```
+`
 
 ### Option 2: Gradle (via JitPack)
-```groovy
+`groovy
 repositories {
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'io.github.andrestubbe:fastanimation:0.1.0'
-    implementation 'com.github.andrestubbe:fasttween:0.1.0'
-    implementation 'com.github.andrestubbe:fastcore:v1.0.0'
+    implementation 'com.github.andrestubbe:.1.0'
+    implementation 'com.github.andrestubbe:fastcore:v0.1.0'
 }
-```
+`
 
 ### Option 3: Direct Download (No Build Tool)
 Download the latest JARs directly to add them to your classpath:
 
-1.  📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/fastanimation/releases)** (The Core Library)
-2.  ⚙️ **[fastcore-v1.0.0.jar](https://github.com/andrestubbe/FastCore/releases)** (The Mandatory Native Loader)
+1. 📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)** (The Core Library)
+2. ⚙️ **[fastcore-v0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/v0.1.0/fastcore-v0.1.0.jar)** (The Mandatory Native Loader)
 
 > [!IMPORTANT]
 > All JARs must be in your classpath for the native JNI calls to function correctly.
+
 
 ## Running the Demo
 We've included a comprehensive performance benchmark to compare different timing engines:
