@@ -2,7 +2,7 @@
 
 **A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and complex motion graphics.**
 
-[![Status](https://img.shields.io/badge/status-v0.1.0--alpha-orange.svg)]()
+[![Status](https://img.shields.io/badge/status-v0.1.0-brightgreen.svg)](https://github.com/andrestubbe/FastAnimation/releases/tag/v0.1.0)
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.java.com)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-orange.svg)](https://maven.apache.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
