@@ -1,4 +1,4 @@
-# FastAnimation — Ultra-Fast Native Animation Engine for Java [v0.1.0]
+﻿# FastAnimation â€” Ultra-Fast Native Animation Engine for Java [v0.1.0]
 
 **A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and complex motion graphics.**
 
@@ -20,10 +20,10 @@
 - [License](#license)
 
 ## Features
-- **⚡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
-- **📈 Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
-- **📦 Zero GC Pressure**: Reusable animation instances and optimized data structures.
-- **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
+- **âš¡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
+- **ðŸ“ˆ Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
+- **ðŸ“¦ Zero GC Pressure**: Reusable animation instances and optimized data structures.
+- **ðŸ–‡ï¸ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
 
 ## Quick Start
 
@@ -44,7 +44,7 @@ cd FastAnimation
 ### Option 1: Maven (Recommended)
 Add the JitPack repository and the dependencies to your `pom.xml`:
 
-`xml
+```xml
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -59,6 +59,7 @@ Add the JitPack repository and the dependencies to your `pom.xml`:
         <artifactId>fastanimation</artifactId>
         <version>v0.1.0</version>
     </dependency>
+
     <!-- FastCore (Required Native Loader) -->
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
@@ -66,19 +67,19 @@ Add the JitPack repository and the dependencies to your `pom.xml`:
         <version>v0.1.0</version>
     </dependency>
 </dependencies>
-`
+```
 
 ### Option 2: Gradle (via JitPack)
-`groovy
+```groovy
 repositories {
     maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'com.github.andrestubbe:.1.0'
+    implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
     implementation 'com.github.andrestubbe:fastcore:v0.1.0'
 }
-`
+```
 
 ### Option 3: Direct Download (No Build Tool)
 Download the latest JARs directly to add them to your classpath:
@@ -110,10 +111,10 @@ See [COMPILE.md](COMPILE.md) for detailed build instructions.
 See [ROADMAP.md](ROADMAP.md) for detailed implementation plans.
 
 ## License
-MIT License — See [LICENSE](LICENSE) for details.
+MIT License â€” See [LICENSE](LICENSE) for details.
 
 ---
-**Part of the FastJava Ecosystem** — *Making the JVM faster.*
+**Part of the FastJava Ecosystem** â€” *Making the JVM faster.*
 
 <!-- BING COPILOT SEO KEYWORDS -->
 <!-- 
