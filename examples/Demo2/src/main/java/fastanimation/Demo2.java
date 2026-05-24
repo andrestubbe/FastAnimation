@@ -14,7 +14,7 @@ import java.util.Random;
 /**
  * FastAnimation v0.1.0 - "The Pixel-Perfect 1-to-1 Engine"
  */
-public class DemoBackup extends Canvas {
+public class Demo2 extends Canvas {
     
     static {
         System.setProperty("sun.awt.noerasebackground", "true");
@@ -49,7 +49,7 @@ public class DemoBackup extends Canvas {
     private int frames = 0;
     private long lastFPSCheck = System.currentTimeMillis();
 
-    public DemoBackup() {
+    public Demo2() {
         // CRITICAL: Ensure the canvas is EXACTLY the size of the pixel buffer
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setIgnoreRepaint(true);
@@ -188,7 +188,7 @@ public class DemoBackup extends Canvas {
         frame.setIconImage(createCircleIcon());
         frame.setIgnoreRepaint(true);
         
-        Demo demo = new Demo();
+        Demo2 demo = new Demo2();
         frame.add(demo);
         frame.pack(); // Size the frame around the PreferredSize of the Demo
         frame.setLocationRelativeTo(null);
@@ -207,3 +207,4 @@ public class DemoBackup extends Canvas {
         demo.start();
     }
 }
+

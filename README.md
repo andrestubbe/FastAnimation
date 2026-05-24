@@ -1,4 +1,4 @@
-﻿# FastAnimation — Ultra-Fast Native Animation Engine for Java [v0.1.0]
+# FastAnimation — Ultra-Fast Native Animation Engine for Java [v0.1.0]
 
 **A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and complex motion graphics.**
 
@@ -103,12 +103,10 @@ We've included a comprehensive performance benchmark to compare different timing
 
 See [COMPILE.md](COMPILE.md) for detailed build instructions.
 
-## Roadmap
-- [ ] **Battle of the Timers**: Implementation of the high-precision backend comparison.
-- [ ] **Native Multimedia Ticker**: JNI-based `timeSetEvent` integration for Windows.
-- [ ] **DirectX VSync Provider**: Syncing animation frames with the monitor refresh rate via FastDWM.
-
-See [ROADMAP.md](ROADMAP.md) for detailed implementation plans.
+## Documentation
+*   **[COMPILE.md](COMPILE.md)**: Detailed build instructions.
+*   **[CHANGELOG.md](CHANGELOG.md)**: Project history.
+*   **[ROADMAP.md](ROADMAP.md)**: Future development and milestones.
 
 ## License
 MIT License — See [LICENSE](LICENSE) for details.

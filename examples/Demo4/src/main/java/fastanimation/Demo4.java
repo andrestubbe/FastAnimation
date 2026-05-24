@@ -1,4 +1,4 @@
-package fastanimation.example;
+package fastanimation;
 
 import fastanimation.Animation;
 import fastanimation.FastAnimation;
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Benchmark comparing Animation Engine stability.
  */
-public class StabilityBenchmark {
+public class Demo4 {
     
     public static void main(String[] args) throws InterruptedException {
         System.out.println("╔══════════════════════════════════════════╗");
@@ -57,3 +57,4 @@ public class StabilityBenchmark {
         FastAnimation.stopEngine();
     }
 }
+

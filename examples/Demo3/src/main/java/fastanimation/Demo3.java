@@ -1,4 +1,4 @@
-package fastanimation.example;
+package fastanimation;
 
 import fastanimation.Animation;
 import fastanimation.FastAnimation;
@@ -10,7 +10,7 @@ import fasttween.FastTween;
  * 
  * Run with: mvn compile exec:java
  */
-public class Demo {
+public class Demo3 {
     
     public static void main(String[] args) throws InterruptedException {
         printBanner();
@@ -84,3 +84,4 @@ public class Demo {
         System.out.println("╚══════════════════════════════════════════╝");
     }
 }
+

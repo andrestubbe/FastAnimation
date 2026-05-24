@@ -11,7 +11,7 @@ import java.awt.image.DataBufferInt;
  * FastAnimation Ground Zero - DEBUGGING FLICKER
  * PHASE 4.4: Triple-Buffered Stability
  */
-public class Demo extends Canvas {
+public class Demo1 extends Canvas {
     
     static {
         System.setProperty("sun.java2d.opengl", "true");
@@ -29,7 +29,7 @@ public class Demo extends Canvas {
     private int[] pixels;
     private int[] backgroundPixels;
 
-    public Demo() {
+    public Demo1() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setIgnoreRepaint(true);
         initBuffers();
@@ -107,7 +107,7 @@ public class Demo extends Canvas {
         JFrame frame = new JFrame("DEBUG: Phase 4.4 (Triple-Buffer Sync)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setIgnoreRepaint(true);
-        Demo demo = new Demo();
+        Demo1 demo = new Demo1();
         frame.add(demo);
         frame.pack();
         frame.setLocationRelativeTo(null);
@@ -115,3 +115,4 @@ public class Demo extends Canvas {
         demo.start();
     }
 }
+

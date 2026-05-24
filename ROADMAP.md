@@ -1,19 +1,26 @@
-# FastAnimation Roadmap
+# FastAnimation Roadmap 🗺️
 
-## 🎯 Current Status: v0.1.0-alpha
+**Vision:** To provide an ultra-fast, zero-allocation timeline and animation engine for Java, heavily leveraging native Windows timers for sub-millisecond precision and VSync perfection.
 
-### 🟢 Phase 1: Foundation (Done)
-- [x] Zero-allocation timeline engine
-- [x] Chaining and Parallel execution
-- [x] FastTween integration
-- [x] Standardized Maven/Batch build system
+## 🟢 v0.1.0: Initial Release (Current)
+- [x] **Zero-allocation timeline engine**: Foundation for all tweens.
+- [x] **Chaining and Parallel execution**: Support for complex sequences.
+- [x] **FastTween integration**: Seamless value interpolation.
+- [x] **Standardized Maven/Batch build system**: BluePrint compliance.
 
-### 🟡 Phase 2: Performance (Coming Soon)
-- [ ] FastDWM native heartbeat integration (The "Master Pulse")
-- [ ] Object-pool for reusable timeline segments
-- [ ] Frame-skipping logic for high-load scenarios
+## 🟡 v0.2.0: Optimization Phase
+- [ ] **Battle of the Timers**: Implementation of the high-precision backend comparison.
+- [ ] **FastDWM native heartbeat integration**: "The Master Pulse" using `timeSetEvent` and DirectX VSync.
+- [ ] **Object-pool**: Reusable timeline segments to further reduce GC pressure.
 
-### ⚪ Phase 3: Features
-- [ ] Path-based animations
-- [ ] CSS-like easing curves (Bezier)
-- [ ] Timeline scrubbing and reverse playback
+## 🟠 v0.5.0: Platform & Logic Expansion
+- [ ] **Frame-skipping logic**: Handle high-load scenarios gracefully without slowing timeline.
+- [ ] **Path-based animations**: Follow curves and complex splines.
+- [ ] **CSS-like easing curves**: Customizable Bezier easing.
+
+## 🔴 v1.0.0: Production Hardening
+- [ ] **Timeline scrubbing and reverse playback**: Full timeline traversal control.
+- [ ] **Full Stability Audit**: Long-run stress testing in production UI environments.
+
+---
+**Focus:** Performance is our USP. We optimize where Java stops.
