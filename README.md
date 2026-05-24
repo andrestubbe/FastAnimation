@@ -15,7 +15,6 @@
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Running the Demo](#running-the-demo)
-- [Build from Source](#build-from-source)
 - [Roadmap](#roadmap)
 - [License](#license)
 
@@ -96,12 +95,6 @@ We've included a comprehensive performance benchmark to compare different timing
 1. Run `compile.bat` to build the engine.
 2. Run `run-demo.bat` to launch the **Battle of the Timers**.
 
-## Build from Source
-- **JDK 17+**
-- **Maven 3.9+**
-- **Windows 10/11**
-
-See [COMPILE.md](COMPILE.md) for detailed build instructions.
 
 ## Documentation
 *   **[REFERENCE.md](REFERENCE.md)**: Full technical specification and JNI contracts.
