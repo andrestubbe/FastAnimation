@@ -104,7 +104,8 @@ We've included a comprehensive performance benchmark to compare different timing
 See [COMPILE.md](COMPILE.md) for detailed build instructions.
 
 ## Documentation
-*   **[COMPILE.md](COMPILE.md)**: Detailed build instructions.
+*   **[REFERENCE.md](REFERENCE.md)**: Full technical specification and JNI contracts.
+*   **[PHILOSOPHIE.md](PHILOSOPHIE.md)**: The "Native-First" philosophy.
 *   **[CHANGELOG.md](CHANGELOG.md)**: Project history.
 *   **[ROADMAP.md](ROADMAP.md)**: Future development and milestones.
 
