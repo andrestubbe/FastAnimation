@@ -3,17 +3,16 @@ setlocal
 cd /d "%~dp0"
 
 echo ===========================================
-echo FastAnimation Benchmark (v0.1.0)
+echo FastAnimation Demo2
 echo ===========================================
 echo.
 
-cd examples\Benchmark
-call mvn compile exec:java -Dexec.mainClass="fastanimation.Benchmark" -q
+cd examples\Demo2
+call mvn compile exec:java -Dexec.mainClass="fastanimation.Demo2" -q
 if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] Benchmark failed to launch. 
+    echo [ERROR] Demo failed to launch. 
     pause
 )
 
 cd ..\..
-
