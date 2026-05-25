@@ -6,8 +6,12 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010+-lightgrey.svg)]()
 [![JitPack](https://img.shields.io/badge/JitPack-ready-green.svg)](https://jitpack.io/#andrestubbe)
 
+---
+
 **⚡ A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and
 complex motion graphics.**
+
+---
 
 [![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
 
@@ -48,22 +52,6 @@ public class Example {
 
 ---
 
-## Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/andrestubbe/FastAnimation.git
-cd FastAnimation
-
-# Build the project
-.\compile.bat
-
-# Run the Performance Showcase (Battle of the Timers)
-.\run-demo.bat
-```
-
----
-
 ## Installation
 
 ### Option 1: Maven (Recommended)
@@ -71,28 +59,23 @@ cd FastAnimation
 Add the JitPack repository and the dependencies to your `pom.xml`:
 
 ```xml
-
 <repositories>
     <repository>
         <id>jitpack.io</id>
         <url>https://jitpack.io</url>
     </repository>
 </repositories>
-
 <dependencies>
-<!-- FastAnimation Library -->
-<dependency>
-    <groupId>com.github.andrestubbe</groupId>
-    <artifactId>fastanimation</artifactId>
-    <version>v0.1.0</version>
-</dependency>
-
-<!-- FastCore (Required Native Loader) -->
-<dependency>
-    <groupId>com.github.andrestubbe</groupId>
-    <artifactId>fastcore</artifactId>
-    <version>v0.1.0</version>
-</dependency>
+   <dependency>
+       <groupId>com.github.andrestubbe</groupId>
+       <artifactId>fastanimation</artifactId>
+       <version>v0.1.0</version>
+   </dependency>
+   <dependency>
+       <groupId>com.github.andrestubbe</groupId>
+       <artifactId>fastcore</artifactId>
+       <version>v0.1.0</version>
+   </dependency>
 </dependencies>
 ```
 
@@ -102,7 +85,6 @@ Add the JitPack repository and the dependencies to your `pom.xml`:
 repositories {
     maven { url 'https://jitpack.io' }
 }
-
 dependencies {
     implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
     implementation 'com.github.andrestubbe:fastcore:v0.1.0'
@@ -118,18 +100,6 @@ Download the latest JARs directly to add them to your classpath:
    ** (The Core Library)
 2. ⚙️ **[fastcore-v0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/v0.1.0/fastcore-v0.1.0.jar)** (
    The Mandatory Native Loader)
-
-> [!IMPORTANT]
-> All JARs must be in your classpath for the native JNI calls to function correctly.
-
----
-
-## Running the Demo
-
-We've included a comprehensive performance benchmark to compare different timing engines:
-
-1. Run `compile.bat` to build the engine.
-2. Run `run-demo.bat` to launch the **Battle of the Timers**.
 
 ---
 
