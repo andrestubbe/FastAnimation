@@ -6,7 +6,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010+-lightgrey.svg)]()
 [![JitPack](https://img.shields.io/badge/JitPack-ready-green.svg)](https://jitpack.io/#andrestubbe)
 
-**A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and
+**⚡ A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and
 complex motion graphics.**
 
 [![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
