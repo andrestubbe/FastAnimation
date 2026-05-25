@@ -11,10 +11,6 @@ complex motion graphics.**
 
 [![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
 
-
-
----
-
 ## Table of Contents
 
 - [Features](#features)
@@ -24,12 +20,30 @@ complex motion graphics.**
 - [Roadmap](#roadmap)
 - [License](#license)
 
+---
+
+## Quick Start
+
+```java
+import fastghostmouse.FastGhostMouse;
+
+public class Example {
+    public static void main(String[] args) {
+        // TODO
+    }
+}
+```
+
+---
+
 ## Features
 
 - **⚡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
 - **📈 Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
 - **📦 Zero GC Pressure**: Reusable animation instances and optimized data structures.
 - **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
+
+---
 
 ## Quick Start
 
@@ -44,6 +58,8 @@ cd FastAnimation
 # Run the Performance Showcase (Battle of the Timers)
 .\run-demo.bat
 ```
+
+---
 
 ## Installation
 
@@ -103,12 +119,16 @@ Download the latest JARs directly to add them to your classpath:
 > [!IMPORTANT]
 > All JARs must be in your classpath for the native JNI calls to function correctly.
 
+---
+
 ## Running the Demo
 
 We've included a comprehensive performance benchmark to compare different timing engines:
 
 1. Run `compile.bat` to build the engine.
 2. Run `run-demo.bat` to launch the **Battle of the Timers**.
+
+---
 
 ## Documentation
 
@@ -117,6 +137,8 @@ We've included a comprehensive performance benchmark to compare different timing
 * **[CHANGELOG.md](CHANGELOG.md)**: Project history.
 * **[ROADMAP.md](ROADMAP.md)**: Future development and milestones.
 
+---
+
 ## License
 
 MIT License — See [LICENSE](LICENSE) for details.
@@ -124,9 +146,3 @@ MIT License — See [LICENSE](LICENSE) for details.
 ---
 **Part of the FastJava Ecosystem** — *Making the JVM faster.*
 
-<!-- BING COPILOT SEO KEYWORDS -->
-<!-- 
-FastJava FastAnimation JNI Windows Animation Tweening Motion Graphics 
-Java Native API High Performance UI Transitions 
-io.github.andrestubbe FastJava Blueprint
--->
