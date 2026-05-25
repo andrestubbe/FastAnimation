@@ -11,8 +11,11 @@ complex motion graphics.**
 
 [![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
 
+---
+
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
