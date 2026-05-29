@@ -102,19 +102,30 @@ public class Benchmark {
     
     private static void printProgressBar(String label, float progress) {
         int barLength = 15;
-        int filled = (int)(progress * barLength);
+        float totalBlocks = progress * barLength;
+        int filled = (int) totalBlocks;
+        int fractionStep = (int) ((totalBlocks - filled) * 4); // 0 to 3
+        
         StringBuilder sb = new StringBuilder();
         sb.append("\r").append(label).append(": ");
         
-        String colorFilled = FastANSI.CSI + FastSGR.RESET + "m";
-        String colorEmpty = FastANSI.CSI + "38;2;48;48;48m"; // Dark Grey (RGB 48,48,48)
-        String colorReset = FastANSI.CSI + FastSGR.RESET + "m";
+        String fgWhite = FastANSI.CSI + "38;5;15m"; // Bright White FG
+        String bgDarkGrey = FastANSI.CSI + "48;5;238m"; // Dark Grey BG
+        String reset = FastANSI.CSI + FastSGR.RESET + "m";
 
         for (int i = 0; i < barLength; i++) {
-            if (i < filled) sb.append(colorFilled).append("\u2588"); 
-            else sb.append(colorEmpty).append("\u2588"); 
+            if (i < filled) {
+                sb.append(reset).append('\u2588'); // █ Full
+            } else if (i == filled) {
+                if (fractionStep == 0) sb.append(reset).append(bgDarkGrey).append(' ');      // Empty (Space on Dark Grey BG)
+                else if (fractionStep == 1) sb.append(fgWhite).append(bgDarkGrey).append('\u2591'); // ░ Light Shade
+                else if (fractionStep == 2) sb.append(fgWhite).append(bgDarkGrey).append('\u2592'); // ▒ Medium Shade
+                else if (fractionStep == 3) sb.append(fgWhite).append(bgDarkGrey).append('\u2593'); // ▓ Dark Shade
+            } else {
+                sb.append(reset).append(bgDarkGrey).append(' '); // Empty (Space on Dark Grey BG)
+            }
         }
-        sb.append(colorReset).append(String.format(" %3d%%", (int)(progress * 100)));
+        sb.append(reset).append(String.format(" %3d%%", (int)(progress * 100)));
         System.out.print(sb.toString());
     }
     
