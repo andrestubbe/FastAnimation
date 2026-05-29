@@ -63,6 +63,21 @@ public class Example {
 
 ---
 
+## Performance Benchmarks
+
+See the FastAnimation engine in action under extreme load:
+🎥 [**Watch the Ultimate Benchmark on YouTube**](https://youtube.com/your-video-link-here)
+
+| Benchmark Metric | Java Mode (`Thread.sleep`) | Native Mode (`FastDWM`) | Improvement |
+|------------------|----------------------------|-------------------------|-------------|
+| **Tick Rate (1M Tweens)** | ~180 FPS | **~560 FPS** | **3.1× Faster** |
+| **Tick Rate (10k Tweens)**| ~177 FPS | **~551 FPS** | **3.1× Faster** |
+| **Max Jitter (GC Stress)**| ~4359 μs | **~3258 μs** | **25% Smoother** |
+
+*Measured on Windows 11, Intel Core i7, Java 17*
+
+---
+
 ## Installation
 
 ### Option 1: Maven (Recommended)

@@ -4,6 +4,8 @@ import fastanimation.Animation;
 import fastanimation.FastAnimation;
 import fastanimation.AnimationEngine.HeartbeatMode;
 import fasttween.FastTween;
+import fastansi.FastANSI;
+import fastansi.FastSGR;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -13,13 +15,12 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Benchmark {
     
     public static void main(String[] args) throws InterruptedException {
-        System.out.println("⚡ FastAnimation Ultimate Benchmark Suite");
-        System.out.println("=========================================\n");
+        System.out.println("⚡ FastAnimation Benchmark\n");
         
         System.out.println("[JAVA MODE]");
         runSuite(HeartbeatMode.JAVA);
         
-        System.out.println("\n[NATIVE_MM MODE]");
+        System.out.println("\n[NATIVE_MM MODE (via FastDWM)]");
         runSuite(HeartbeatMode.NATIVE_MM);
         
         System.out.println("\n✅ Benchmark Complete.");
@@ -30,20 +31,20 @@ public class Benchmark {
         FastAnimation.setHeartbeatMode(mode);
         
         // Ramp-Up Test
-        runTest("  1,000 Tweens", 1000, false);
-        runTest(" 10,000 Tweens", 10000, false);
-        runTest("100,000 Tweens", 100000, false);
+        runTest("     1k Tweens", 1000, false);
+        runTest("    10k Tweens", 10000, false);
+        runTest("   100k Tweens", 100000, false);
+        runTest(" 1,000k Tweens", 1000000, false);
         
         // GC + Complex Timeline Stress
         runTest(" 10k GC Stress", 10000, true);
     }
     
     private static void runTest(String label, int count, boolean gcStress) throws InterruptedException {
-        final int DURATION_SEC = 2; 
+        final int DURATION_SEC = 5; 
         
         AtomicLong totalJitter = new AtomicLong(0);
         AtomicLong maxJitter = new AtomicLong(0);
-        AtomicInteger spikes = new AtomicInteger(0);
         AtomicInteger frames = new AtomicInteger(0);
         
         final long[] lastTime = { System.nanoTime() };
@@ -74,7 +75,6 @@ public class Benchmark {
                             long diff = Math.abs(currentDelta - lastDelta[0]);
                             totalJitter.addAndGet(diff);
                             if (diff > maxJitter.get()) maxJitter.set(diff);
-                            if (diff > 5_000_000) spikes.incrementAndGet(); // >5ms variation
                         }
                         lastDelta[0] = currentDelta;
                     }
@@ -94,7 +94,7 @@ public class Benchmark {
             Thread.sleep(50);
         }
         
-        printFinalStats(label, frames.get(), totalJitter.get(), maxJitter.get(), spikes.get());
+        printFinalStats(label, frames.get(), DURATION_SEC, totalJitter.get(), maxJitter.get());
         Thread.sleep(200); // Give engine time to clear
     }
     
@@ -103,18 +103,28 @@ public class Benchmark {
         int filled = (int)(progress * barLength);
         StringBuilder sb = new StringBuilder();
         sb.append("\r").append(label).append(": ");
+        
+        String colorFilled = FastANSI.CSI + FastSGR.RESET + "m";
+        String colorEmpty = FastANSI.CSI + "38;2;64;64;64m"; // 25% White (RGB 64,64,64)
+        String colorReset = FastANSI.CSI + FastSGR.RESET + "m";
+
         for (int i = 0; i < barLength; i++) {
-            if (i < filled) sb.append("\u2588"); 
-            else sb.append("\u2591"); 
+            if (i < filled) sb.append(colorFilled).append("\u2588"); 
+            else sb.append(colorEmpty).append("\u2588"); 
         }
-        sb.append(String.format(" %3d%%", (int)(progress * 100)));
+        sb.append(colorReset).append(String.format(" %3d%%", (int)(progress * 100)));
         System.out.print(sb.toString());
     }
     
-    private static void printFinalStats(String label, int frames, long totalJitter, long maxJitter, int spikes) {
+    private static void printFinalStats(String label, int frames, int durationSec, long totalJitter, long maxJitter) {
         long avgJitter = frames > 0 ? totalJitter / frames : 0;
+        int fps = frames / durationSec;
         String clear = "          ";
-        System.out.printf("\r%s: \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 100%% | Avg: %4d us | Max: %4d us | Spikes(>5ms): %2d %s%n", 
-                label, avgJitter / 1000, maxJitter / 1000, spikes, clear);
+        
+        String colorFilled = FastANSI.CSI + FastSGR.RESET + "m";
+        String colorReset = FastANSI.CSI + FastSGR.RESET + "m";
+        
+        System.out.printf("\r%s: %s\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588%s 100%% | FPS: %4d | Avg: %4d us | Max: %4d us %s%n", 
+                label, colorFilled, colorReset, fps, avgJitter / 1000, maxJitter / 1000, clear);
     }
 }
