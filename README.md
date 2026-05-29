@@ -66,7 +66,7 @@ public class Example {
 
 ### Option 1: Maven (Recommended)
 
-Add the JitPack repository and the dependencies to your `pom.xml`:
+Add the JitPack repository and the dependency to your `pom.xml`:
 
 ```xml
 <repositories>
@@ -81,11 +81,6 @@ Add the JitPack repository and the dependencies to your `pom.xml`:
        <artifactId>fastanimation</artifactId>
        <version>v0.1.0</version>
    </dependency>
-   <dependency>
-       <groupId>com.github.andrestubbe</groupId>
-       <artifactId>fastcore</artifactId>
-       <version>v0.1.0</version>
-   </dependency>
 </dependencies>
 ```
 
@@ -97,16 +92,14 @@ repositories {
 }
 dependencies {
     implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
-    implementation 'com.github.andrestubbe:fastcore:v0.1.0'
 }
 ```
 
 ### Option 3: Direct Download (No Build Tool)
 
-Download the latest JARs directly to add them to your classpath:
+Download the latest JAR directly to add it to your classpath:
 
 1. 📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)** (The Core Library)
-2. ⚙️ **[fastcore-v0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/v0.1.0/fastcore-v0.1.0.jar)** (The Mandatory Native Loader)
 
 ---
 
