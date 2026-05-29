@@ -15,7 +15,7 @@ graphics. It is deeply integrated and bundled with **[FastTween](https://github.
 zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
 animations in Java.
 
-[![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
+[![FastAnimation Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21)
 
 ---
 
