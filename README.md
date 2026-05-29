@@ -23,6 +23,7 @@ animations in Java.
 
 - [Quick Start](#quick-start)
 - [Features](#features)
+- [Performance Benchmarks](#performance-benchmarks)
 - [Installation](#installation)
 - [Platform Support](#platform-support)
 - [License](#license)
@@ -66,7 +67,7 @@ public class Example {
 ## Performance Benchmarks
 
 See the FastAnimation engine in action under extreme load:
-🎥 [**Watch the Ultimate Benchmark on YouTube**](https://youtube.com/your-video-link-here)
+🎥 [**Watch the Benchmark on YouTube**](https://youtu.be/WFFVqsfcmbM)
 
 | Benchmark Metric | Java Mode (`Thread.sleep`) | Native Mode (`FastDWM`) | Improvement |
 |------------------|----------------------------|-------------------------|-------------|
