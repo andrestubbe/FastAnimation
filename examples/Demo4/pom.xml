@@ -44,23 +44,11 @@
             <version>0.1.0</version>
         </dependency>
         
-        <!-- DEVELOPMENT MODE (Local System Path) -->
-        <dependency>
-            <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fastanimation</artifactId>
-            <version>0.1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/../../target/fastanimation-0.1.0.jar</systemPath>
-        </dependency>
-        
-        <!-- PRODUCTION MODE (JitPack) -->
-        <!--
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
             <artifactId>fastanimation</artifactId>
             <version>0.1.0</version>
         </dependency>
-        -->
     </dependencies>
     
     <build>
