@@ -10,7 +10,10 @@
 
 **⚡ Ultra-fast animation and timeline orchestration for the FastJava ecosystem.**
 
-**FastAnimation** is a high-performance timeline engine built for zero-latency UI transitions and complex motion graphics. It is deeply integrated and bundled with **[FastTween](https://github.com/andrestubbe/FastTween)**—our zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed animations in Java.
+**FastAnimation** is a high-performance timeline engine built for zero-latency UI transitions and complex motion
+graphics. It is deeply integrated and bundled with **[FastTween](https://github.com/andrestubbe/FastTween)**—our
+zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
+animations in Java.
 
 [![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
 
@@ -42,10 +45,10 @@ public class Example {
 
         // Orchestrate a sequence of FastTweens seamlessly
         FastAnimation.sequence(
-            FastTween.to(0, 100, 1000).onUpdate(val -> System.out.println("X: " + val)),
-            FastTween.to(1.0f, 0.0f, 500).onUpdate(val -> System.out.println("Fade: " + val))
-        ).onComplete(() -> System.out.println("Animation Complete!"))
-         .start();
+                        FastTween.to(0, 100, 1000).onUpdate(val -> System.out.println("X: " + val)),
+                        FastTween.to(1.0f, 0.0f, 500).onUpdate(val -> System.out.println("Fade: " + val))
+                ).onComplete(() -> System.out.println("Animation Complete!"))
+                .start();
     }
 }
 ```
@@ -68,6 +71,7 @@ public class Example {
 Add the JitPack repository and the dependency to your `pom.xml`:
 
 ```xml
+
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -75,11 +79,11 @@ Add the JitPack repository and the dependency to your `pom.xml`:
     </repository>
 </repositories>
 <dependencies>
-   <dependency>
-       <groupId>com.github.andrestubbe</groupId>
-       <artifactId>fastanimation</artifactId>
-       <version>v0.1.0</version>
-   </dependency>
+<dependency>
+    <groupId>com.github.andrestubbe</groupId>
+    <artifactId>fastanimation</artifactId>
+    <version>v0.1.0</version>
+</dependency>
 </dependencies>
 ```
 
@@ -98,7 +102,25 @@ dependencies {
 
 Download the latest JAR directly to add it to your classpath:
 
-1. 📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)** (The Core Library)
+1. 📦 *
+   *[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)
+   ** (The Core Library)
+
+---
+
+## Platform Support
+
+| Platform      | Status            |
+|---------------|-------------------|
+| Windows 10/11 | ✅ Fully Supported |
+| Linux         | ✅ Fully Supported |
+| macOS         | ✅ Fully Supported |
+
+---
+
+## License
+
+MIT License — See [LICENSE](LICENSE) for details.
 
 ---
 
@@ -111,11 +133,5 @@ Download the latest JAR directly to add it to your classpath:
 - [FastTheme](https://github.com/andrestubbe/FastTheme) — High-performance native window styling
 
 ---
-
-## License
-
-MIT License — See [LICENSE](LICENSE) for details.
-
----
-**Part of the FastJava Ecosystem** — *Making the JVM faster.*
+**Part of the FastJava Ecosystem** — *Making the JVM faster. Small package. Maximum speed. Zero bloat. 🚀📋*
 
