@@ -93,11 +93,28 @@ Add the JitPack repository and the dependency to your `pom.xml`:
     </repository>
 </repositories>
 <dependencies>
-<dependency>
-    <groupId>com.github.andrestubbe</groupId>
-    <artifactId>fastanimation</artifactId>
-    <version>v0.1.0</version>
-</dependency>
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fastanimation</artifactId>
+        <version>v0.1.0</version>
+    </dependency>
+    <!-- Recommended for interpolation -->
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fasttween</artifactId>
+        <version>v0.1.0</version>
+    </dependency>
+    <!-- Required for NATIVE_MM and NATIVE_VSYNC -->
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fastdwm</artifactId>
+        <version>v0.1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fastcore</artifactId>
+        <version>v1.0.0</version>
+    </dependency>
 </dependencies>
 ```
 
