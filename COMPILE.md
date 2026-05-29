@@ -14,7 +14,7 @@ mvn clean package
 ## Run Examples
 
 ```bash
-cd examples/00-basic-usage
+cd examples/Benchmark
 mvn compile exec:java
 ```
 
@@ -34,7 +34,7 @@ mvn compile exec:java
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
         <artifactId>fastanimation</artifactId>
-        <version>v1.0.0</version>
+        <version>v0.1.0</version>
     </dependency>
 </dependencies>
 ```
@@ -47,7 +47,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.andrestubbe:fastanimation:v1.0.0'
+    implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
 }
 ```
 
