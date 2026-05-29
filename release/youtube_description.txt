@@ -1,0 +1,26 @@
+TITLE:
+FastAnimation: High-Performance Native Java Tweens at 120 FPS (Zero-GC)
+
+DESCRIPTION:
+Showcasing the raw capabilities of FastAnimation, a lightweight timeline engine. What looks like a smooth pseudo-3D realm (Graphics2D) is actually a massive parallel stress test for the JVM. Otherwise i would use JOGL/DirectX.
+
+In this demo, the engine orchestrates a massive amount of concurrent FastTween instances -- updating X, Y, Z coordinates and scaling factors completely independently.
+
+TECHNICAL HIGHLIGHTS:
+- Native Heartbeat: Hooked directly into the Windows Multimedia API (FastDWM) via C++ JNI for nanosecond-precision timing, completely bypassing inaccurate Java threads.
+- 120 FPS Target-Lock: Custom render loop bypassing traditional VSync to guarantee a buttery-smooth 120 frames per second.
+- Zero GC-Stalls: Strict allocation-free architecture. Zero new objects are created during the animation loop, eliminating Garbage Collector micro-stutters.
+- Immersive Native UI: The pitch-black UI uses the FastTheme native library to force the standard Java Swing JFrame into true Immersive Dark Mode, rendered with hardware-accelerated Java2D Anti-Aliasing.
+
+GITHUB REPOSITORIES: 
+https://github.com/andrestubbe/FastAnimation
+https://github.com/andrestubbe/FastTween
+https://github.com/andrestubbe/FastDWM
+https://github.com/andrestubbe/FastCore
+
+OUR PHILOSOPHY:
+No copies. Ever. Critical JNI paths. Native-First performance.
+If you're interested in pushing the JVM to its absolute limits using native bindings, subscribe for more.
+
+TAGS:
+Java, FastJava, JNI, Performance, Animation Engine, Software Engineering, Java2D, Tech Demo

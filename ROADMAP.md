@@ -23,5 +23,9 @@
 - [ ] **Timeline scrubbing and reverse playback**: Full timeline traversal control.
 - [ ] **Full Stability Audit**: Long-run stress testing in production UI environments.
 
+## 🟣 v2.0.0: Native Math Extension (The "FastFPU" Concept)
+- [ ] **Data-Oriented SIMD Vectors**: Off-heap float arrays for interpolation math.
+- [ ] **C++ AVX2/AVX-512 backend**: Shift the raw timeline calculation from Java JIT to Native SIMD (FastFPU integration) to calculate 16-32 tweens per CPU cycle, enabling true zero-CPU-load operations for 100M+ tweens.
+
 ---
 **Focus:** Performance is our USP. We optimize where Java stops.

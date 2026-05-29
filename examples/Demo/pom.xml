@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>com.github.andrestubbe</groupId>
-    <artifactId>fastanimation-demo4</artifactId>
+    <artifactId>fastanimation-demo</artifactId>
     <version>0.1.0</version>
     <packaging>jar</packaging>
     
@@ -49,7 +49,7 @@
             <artifactId>fastanimation</artifactId>
             <version>0.1.0</version>
         </dependency>
-    </dependencies>
+        <dependency><groupId>com.github.andrestubbe</groupId><artifactId>fasttheme</artifactId><version>0.1.0</version></dependency></dependencies>
     
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
@@ -68,7 +68,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>fastanimation.Demo4</mainClass>
+                    <mainClass>fastanimation.Demo</mainClass>
                     <commandlineArgs>--enable-native-access=ALL-UNNAMED</commandlineArgs>
                     <additionalClasspathElements>
                         <additionalClasspathElement>${project.basedir}/../../target/fastanimation-0.1.0.jar</additionalClasspathElement>
