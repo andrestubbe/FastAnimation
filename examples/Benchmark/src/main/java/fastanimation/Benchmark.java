@@ -31,13 +31,15 @@ public class Benchmark {
         FastAnimation.setHeartbeatMode(mode);
         
         // Ramp-Up Test
-        runTest("     1k Tweens", 1000, false);
-        runTest("    10k Tweens", 10000, false);
-        runTest("   100k Tweens", 100000, false);
-        runTest(" 1,000k Tweens", 1000000, false);
+        runTest("        1k Tweens", 1000, false);
+        runTest("       10k Tweens", 10000, false);
+        runTest("      100k Tweens", 100000, false);
+        runTest("    1,000k Tweens", 1000000, false);
+        runTest("   10,000k Tweens", 10000000, false);
         
         // GC + Complex Timeline Stress
-        runTest(" 10k GC Stress", 10000, true);
+        runTest("    10k GC Stress", 10000, true);
+        runTest("   100k GC Stress", 100000, true);
     }
     
     private static void runTest(String label, int count, boolean gcStress) throws InterruptedException {
@@ -105,7 +107,7 @@ public class Benchmark {
         sb.append("\r").append(label).append(": ");
         
         String colorFilled = FastANSI.CSI + FastSGR.RESET + "m";
-        String colorEmpty = FastANSI.CSI + "38;2;64;64;64m"; // 25% White (RGB 64,64,64)
+        String colorEmpty = FastANSI.CSI + "38;2;48;48;48m"; // Dark Grey (RGB 48,48,48)
         String colorReset = FastANSI.CSI + FastSGR.RESET + "m";
 
         for (int i = 0; i < barLength; i++) {
