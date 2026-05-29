@@ -40,6 +40,11 @@ public final class AnimationEngine {
     
     private static void startEngine() {
         if (running) return;
+        if (engineThread != null && engineThread.isAlive()) {
+            // Old thread is still dying (e.g. caught in a long operation).
+            // It will exit naturally because running=false. We shouldn't spawn a second one!
+            return;
+        }
         running = true;
         engineThread = new Thread(AnimationEngine::engineLoop, "FastAnimation-Heartbeat");
         engineThread.setDaemon(true);
@@ -75,7 +80,11 @@ public final class AnimationEngine {
             }
             synchronized(toRemove) {
                 if (!toRemove.isEmpty()) {
-                    animations.removeAll(toRemove);
+                    if (toRemove.size() > 20) {
+                        animations.removeAll(new java.util.HashSet<>(toRemove)); // O(N) removal
+                    } else {
+                        animations.removeAll(toRemove);
+                    }
                     toRemove.clear();
                 }
             }
