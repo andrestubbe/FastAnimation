@@ -18,11 +18,17 @@ RESULTS (10M Tweens / Extreme Load):
 - FastAnimation Native: ~555 FPS (Max Jitter: ~2601 μs)
 - Speedup: 7.3x faster Tick Rate & nearly 4x smoother under extreme memory load!
 
+DEPENDENCIES (Required for Maximum Performance):
+- FastAnimation (Core Timeline Engine)
+- FastTween (Math Interpolation)
+- FastDWM (Native Windows Multimedia Timers & VSync)
+- FastCore (JNI Loader)
+
 LINKS:
 GitHub: https://github.com/andrestubbe/FastAnimation
 GitHub: https://github.com/andrestubbe/FastDWM
-GitHub: https://github.com/andrestubbe/FastCore
 GitHub: https://github.com/andrestubbe/FastTween
+GitHub: https://github.com/andrestubbe/FastCore
 FastJava Ecosystem: https://github.com/andrestubbe/FastJava
 
 **Part of the FastJava Ecosystem** — *Making the JVM faster. Small package. Maximum speed. Zero bloat. 🚀📋*
