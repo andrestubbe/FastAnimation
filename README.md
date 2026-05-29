@@ -8,10 +8,9 @@
 
 ---
 
-**⚡ A high-performance animation and timeline engine for the FastJava ecosystem. Built for zero-latency UI transitions and
-complex motion graphics.**
+**⚡ Ultra-fast animation and timeline orchestration for the FastJava ecosystem.**
 
----
+**FastAnimation** is a high-performance timeline engine built for zero-latency UI transitions and complex motion graphics. It is deeply integrated and bundled with **FastTween**—our zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed animations in Java.
 
 [![FastKeyboard Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=BZsqQl7WqWk)
 
