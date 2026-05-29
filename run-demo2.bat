@@ -1,18 +1,11 @@
 @echo off
-setlocal
-cd /d "%~dp0"
+chcp 65001 >nul
 
-echo ===========================================
-echo FastAnimation Demo2
-echo ===========================================
-echo.
-
+echo âš¡ Building Main Project...
+call mvn -q clean install -DskipTests
+if %ERRORLEVEL% NEQ 0 ( pause & exit /b )
+echo ðŸš€ Running Demo 2...
 cd examples\Demo2
-call mvn compile exec:java -Dexec.mainClass="fastanimation.Demo2" -q
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Demo failed to launch. 
-    pause
-)
-
+call mvn -q compile exec:java -Dexec.mainClass=fastanimation.Demo2
 cd ..\..
+pause
