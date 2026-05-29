@@ -23,6 +23,7 @@ animations in Java.
 
 - [Quick Start](#quick-start)
 - [Features](#features)
+- [Why FastAnimation?](#why-fastanimation)
 - [Performance Benchmarks](#performance-benchmarks)
 - [Installation](#installation)
 - [Platform Support](#platform-support)
@@ -64,6 +65,23 @@ public class Example {
 
 ---
 
+## Why FastAnimation?
+
+Standard Java animation approaches (like `javax.swing.Timer`, `JavaFX Timeline`, or custom `Thread.sleep` loops) suffer from fundamental architectural flaws when pushed to the limit:
+
+- **OS Scheduler Inaccuracies**: `Thread.sleep` is notoriously inaccurate on Windows, causing micro-stutters and jitter.
+- **Garbage Collection Pauses**: Creating new objects during high-speed renders causes the GC to stall the animation thread.
+- **Single-Thread Bottlenecks**: Tying the animation math to the UI render thread causes the entire app to feel sluggish.
+
+**FastAnimation** solves this by fundamentally rethinking timeline execution:
+
+- **True Native Precision**: Hooks directly into Windows Multimedia Timers (via `FastDWM`) or VSync hardware events to bypass the JVM's sleep inaccuracies entirely.
+- **Zero-Allocation Architecture**: The core engine processes 10,000,000+ parallel animations per tick without instantiating a single object, rendering Garbage Collection irrelevant during motion.
+- **Pure Mathematical Execution**: FastAnimation only handles *time and progress*, decoupling the heavy lifting from the UI thread.
+- **Powered by FastTween**: It seamlessly orchestrates [**FastTween**](https://github.com/andrestubbe/FastTween) instances. While FastTween handles the raw interpolation (e.g., smoothly sliding a value from 0 to 100), FastAnimation acts as the conductor, managing sequences, loops, parallel execution, and complex keyframe timelines across millions of concurrent tweens.
+
+---
+
 ## Performance Benchmarks
 
 See the FastAnimation engine in action under extreme load:
@@ -71,9 +89,8 @@ See the FastAnimation engine in action under extreme load:
 
 | Benchmark Metric | Java Mode (`Thread.sleep`) | Native Mode (`FastDWM`) | Improvement |
 |------------------|----------------------------|-------------------------|-------------|
-| **Tick Rate (1M Tweens)** | ~180 FPS | **~560 FPS** | **3.1× Faster** |
-| **Tick Rate (10k Tweens)**| ~177 FPS | **~551 FPS** | **3.1× Faster** |
-| **Max Jitter (GC Stress)**| ~4359 μs | **~3258 μs** | **25% Smoother** |
+| **Tick Rate (10M Tweens)** | ~76 FPS | **~555 FPS** | **7.3× Faster** |
+| **Max Jitter (GC Stress)**| ~9399 μs | **~2601 μs** | **3.6× Smoother** |
 
 *Measured on Windows 11, Intel Core i7, Java 17*
 
@@ -127,6 +144,11 @@ repositories {
 }
 dependencies {
     implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
+    // Recommended for interpolation
+    implementation 'com.github.andrestubbe:fasttween:v0.1.0'
+    // Required for NATIVE_MM and NATIVE_VSYNC
+    implementation 'com.github.andrestubbe:fastdwm:v0.1.0'
+    implementation 'com.github.andrestubbe:fastcore:v1.0.0'
 }
 ```
 
@@ -135,6 +157,18 @@ dependencies {
 Download the latest JAR directly to add it to your classpath:
 
 1. 📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)** (The Core Library)
+2. 📦 **[fasttween-v0.1.0.jar](https://github.com/andrestubbe/FastTween/releases/download/v0.1.0/fasttween-v0.1.0.jar)** (Recommended for interpolation)
+3. 📦 **[fastdwm-v0.1.0.jar](https://github.com/andrestubbe/FastDWM/releases/download/v0.1.0/fastdwm-v0.1.0.jar)** (Required for NATIVE_MM and NATIVE_VSYNC)
+4. 📦 **[fastcore-v1.0.0.jar](https://github.com/andrestubbe/FastCore/releases/download/v1.0.0/fastcore-v1.0.0.jar)** (Required Native JNI loader)
+
+---
+
+## Documentation
+
+* **[COMPILE.md](COMPILE.md)**: Full compilation guide (MSVC C++17 build chain + JNI Setup).
+* **[REFERENCE.md](REFERENCE.md)**: Exhaustive catalog of SGR styles, OSC window parameters, and callback contracts.
+* **[PHILOSOPHIE.md](PHILOSOPHIE.md)**: Zero-allocation and low-overhead processing designs.
+* **[ROADMAP.md](ROADMAP.md)**: Planned milestone features and performance extensions.
 
 ---
 
