@@ -1,19 +1,11 @@
 @echo off
-setlocal
-cd /d "%~dp0"
+chcp 65001 >nul
 
-echo ===========================================
-echo FastAnimation Benchmark (v0.1.0)
-echo ===========================================
-echo.
-
+echo ⚡ Building Main Project...
+call mvn -q clean install -DskipTests
+if %ERRORLEVEL% NEQ 0 ( pause & exit /b )
+echo 🚀 Running Benchmark...
 cd examples\Benchmark
-call mvn compile exec:java -Dexec.mainClass="fastanimation.Benchmark" -q
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Benchmark failed to launch. 
-    pause
-)
-
+call mvn -q compile exec:java -Dexec.mainClass=fastanimation.Benchmark
 cd ..\..
-
+pause
