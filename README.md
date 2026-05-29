@@ -21,14 +21,31 @@ animations in Java.
 
 ## Table of Contents
 
+- [Why FastAnimation?](#why-fastanimation)
 - [Quick Start](#quick-start)
 - [Features](#features)
-- [Why FastAnimation?](#why-fastanimation)
 - [Performance Benchmarks](#performance-benchmarks)
 - [Installation](#installation)
 - [Platform Support](#platform-support)
 - [License](#license)
 - [Related Projects](#related-projects)
+
+---
+
+## Why FastAnimation?
+
+Standard Java animation approaches (like `javax.swing.Timer`, `JavaFX Timeline`, or custom `Thread.sleep` loops) suffer from fundamental architectural flaws when pushed to the limit:
+
+- **OS Scheduler Inaccuracies**: `Thread.sleep` is notoriously inaccurate on Windows, causing micro-stutters and jitter.
+- **Garbage Collection Pauses**: Creating new objects during high-speed renders causes the GC to stall the animation thread.
+- **Single-Thread Bottlenecks**: Tying the animation math to the UI render thread causes the entire app to feel sluggish.
+
+**FastAnimation** solves this by fundamentally rethinking timeline execution:
+
+- **True Native Precision**: Hooks directly into Windows Multimedia Timers (via `FastDWM`) or VSync hardware events to bypass the JVM's sleep inaccuracies entirely.
+- **Zero-Allocation Architecture**: The core engine processes 10,000,000+ parallel animations per tick without instantiating a single object, rendering Garbage Collection irrelevant during motion.
+- **Pure Mathematical Execution**: FastAnimation only handles *time and progress*, decoupling the heavy lifting from the UI thread.
+- **Powered by FastTween**: It seamlessly orchestrates [**FastTween**](https://github.com/andrestubbe/FastTween) instances. While FastTween handles the raw interpolation (e.g., smoothly sliding a value from 0 to 100), FastAnimation acts as the conductor, managing sequences, loops, parallel execution, and complex keyframe timelines across millions of concurrent tweens.
 
 ---
 
@@ -62,23 +79,6 @@ public class Example {
 - **📈 Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
 - **📦 Zero GC Pressure**: Reusable animation instances and optimized data structures.
 - **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
-
----
-
-## Why FastAnimation?
-
-Standard Java animation approaches (like `javax.swing.Timer`, `JavaFX Timeline`, or custom `Thread.sleep` loops) suffer from fundamental architectural flaws when pushed to the limit:
-
-- **OS Scheduler Inaccuracies**: `Thread.sleep` is notoriously inaccurate on Windows, causing micro-stutters and jitter.
-- **Garbage Collection Pauses**: Creating new objects during high-speed renders causes the GC to stall the animation thread.
-- **Single-Thread Bottlenecks**: Tying the animation math to the UI render thread causes the entire app to feel sluggish.
-
-**FastAnimation** solves this by fundamentally rethinking timeline execution:
-
-- **True Native Precision**: Hooks directly into Windows Multimedia Timers (via `FastDWM`) or VSync hardware events to bypass the JVM's sleep inaccuracies entirely.
-- **Zero-Allocation Architecture**: The core engine processes 10,000,000+ parallel animations per tick without instantiating a single object, rendering Garbage Collection irrelevant during motion.
-- **Pure Mathematical Execution**: FastAnimation only handles *time and progress*, decoupling the heavy lifting from the UI thread.
-- **Powered by FastTween**: It seamlessly orchestrates [**FastTween**](https://github.com/andrestubbe/FastTween) instances. While FastTween handles the raw interpolation (e.g., smoothly sliding a value from 0 to 100), FastAnimation acts as the conductor, managing sequences, loops, parallel execution, and complex keyframe timelines across millions of concurrent tweens.
 
 ---
 
@@ -177,8 +177,8 @@ Download the latest JAR directly to add it to your classpath:
 | Platform      | Status            |
 |---------------|-------------------|
 | Windows 10/11 | ✅ Fully Supported |
-| Linux         | ✅ Fully Supported |
-| macOS         | ✅ Fully Supported |
+| Linux         | 🚧 Planned |
+| macOS         | 🚧 Planned |
 
 ---
 
