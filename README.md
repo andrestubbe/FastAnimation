@@ -32,11 +32,15 @@ complex motion graphics.**
 ## Quick Start
 
 ```java
-import fastghostmouse.FastGhostMouse;
+import fastanimation.AnimationEngine;
 
 public class Example {
     public static void main(String[] args) {
-        // TODO
+        // Initialize the Native Animation Engine
+        AnimationEngine engine = new AnimationEngine();
+        
+        // Start the main render loop
+        engine.start();
     }
 }
 ```
@@ -103,12 +107,13 @@ Download the latest JARs directly to add them to your classpath:
 
 ---
 
-## Documentation
+## Related Projects
 
-* **[REFERENCE.md](REFERENCE.md)**: Full technical specification and JNI contracts.
-* **[PHILOSOPHIE.md](PHILOSOPHIE.md)**: The "Native-First" philosophy.
-* **[CHANGELOG.md](CHANGELOG.md)**: Project history.
-* **[ROADMAP.md](ROADMAP.md)**: Future development and milestones.
+- [FastTween](https://github.com/andrestubbe/FastTween) — Zero overhead pool-based tweening
+- [FastAnimation](https://github.com/andrestubbe/FastAnimation) — Zero overhead timeline orchestration
+- [FastDWM](https://github.com/andrestubbe/FastDWM) — Native Desktop Window Manager API
+- [FastCore](https://github.com/andrestubbe/FastCore) — Native JNI Loader and Utilities
+- [FastTheme](https://github.com/andrestubbe/FastTheme) — High-performance native window styling
 
 ---
 
