@@ -23,11 +23,10 @@ animations in Java.
 
 - [Quick Start](#quick-start)
 - [Features](#features)
-- [Quick Start](#quick-start)
 - [Installation](#installation)
-- [Running the Demo](#running-the-demo)
-- [Roadmap](#roadmap)
+- [Platform Support](#platform-support)
 - [License](#license)
+- [Related Projects](#related-projects)
 
 ---
 
@@ -102,9 +101,7 @@ dependencies {
 
 Download the latest JAR directly to add it to your classpath:
 
-1. 📦 *
-   *[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)
-   ** (The Core Library)
+1. 📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)** (The Core Library)
 
 ---
 
