@@ -30,8 +30,8 @@
 ## 3. Engine Guarantees & Contracts
 
 *   **Zero-Allocation Tick Phase**: The core `engineLoop()` calculates `deltaMs` and updates tracks without instantiating new objects, completely preventing Garbage Collection (GC) stutter during motion.
-*   **Deferred Synchronization**: Animations are added to `toAdd` and `toRemove` staging lists. The main engine loop cleanly flushes these lists at the start of each frame, ensuring thread-safe access without locking up the high-speed tick process.
-*   **Auto-Sleep Architecture**: When both the active animation list and pending queues are empty, the daemon thread intentionally breaks its loop and dies to completely eliminate background CPU usage. It will instantly respawn the next time an animation is added.
+*   **Deferred Synchronization & O(N) Cleanup**: Animations are added to `toAdd` and `toRemove` staging lists. The engine loop flushes these lists at the start of each frame. Removals are automatically upgraded to `HashSet` batch operations ($O(N)$) under heavy load (20+ tweens) to prevent loop freezing during massive GC stress.
+*   **Idle-Sleep Architecture**: When both the active animation list and pending queues are empty, the daemon thread goes into a lightweight `10ms` idle sleep cycle to eliminate CPU usage while maintaining instant readiness. It does not auto-kill itself to prevent thread overlap race conditions.
 
 ## 4. Platform Requirements
 
