@@ -15,7 +15,7 @@ graphics. It is deeply integrated and bundled with **[FastTween](https://github.
 zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
 animations in Java.
 
-▶️ [**Watch the 120 FPS Showcase Demo**](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21) &nbsp; | &nbsp; 📊 [**Watch the Native GC Benchmark**](https://youtu.be/WFFVqsfcmbM)
+▶️ [**Watch the 120 FPS Showcase Demo**](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21) &nbsp; | &nbsp; 📊 [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
 <br>
 
@@ -88,15 +88,15 @@ public class Example {
 
 ## Performance Benchmarks
 
-See the FastAnimation engine in action under extreme load:
-🎥 [**Watch the Benchmark on YouTube**](https://youtu.be/WFFVqsfcmbM)
+FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
+▶️ [**Watch the JMH Benchmark on YouTube**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
-| Benchmark Metric | Java Mode (`Thread.sleep`) | Native Mode (`FastDWM`) | Improvement |
-|------------------|----------------------------|-------------------------|-------------|
-| **Tick Rate (10M Tweens)** | ~76 FPS | **~555 FPS** | **7.3× Faster** |
-| **Max Jitter (GC Stress)**| ~9399 μs | **~2601 μs** | **3.6× Smoother** |
+| Metric / Orchestration Type | Score (ops/ms) | Ops per Second |
+|-----------------------------|----------------|----------------|
+| **Parallel Tracks**         | ~17,581 ops/ms | > 17.5 Million |
+| **Sequence Tracks**         | ~18,248 ops/ms | > 18.2 Million |
 
-*Measured on Windows 11, Intel Core i7, Java 17*
+*Measured on Windows 11, Intel Core i5-1135G7 (Surface Pro 8), JDK 25.0.1. The engine bypasses `Thread.sleep` via `FastDWM` to guarantee zero-jitter native heartbeats even under GC pressure.*
 
 ---
 

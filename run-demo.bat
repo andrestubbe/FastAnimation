@@ -1,7 +1,12 @@
-@echo off
-echo ==============================================
-echo   Starting FastAnimation Demo (120 FPS Lock)
-echo ==============================================
+﻿@echo off
+chcp 65001 >nul
+
+echo ⚡ Building Main Project...
+call mvn -q clean install -DskipTests
+if %ERRORLEVEL% NEQ 0 ( pause & exit /b )
+
+echo 🚀 Running Demo...
 cd examples\Demo
-mvn compile exec:java
+call mvn -q compile exec:java
+cd ..\..
 pause
