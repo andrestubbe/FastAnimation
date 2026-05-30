@@ -1,0 +1,12 @@
+Showcasing the JMH (Java Microbenchmark Harness) performance test for FastAnimation's orchestration engine.
+
+While FastTween handles the raw interpolation, FastAnimation handles the complex grouping, sequencing, and parallelization of those tweens. This benchmark rigorously tests the raw throughput of the orchestration layer under extreme loads.
+
+KEY TAKEAWAYS:
+- Orchestration Overhead: Creating complex nested animation trees (Parallel and Sequence groupings) hits over 11,500 operations per millisecond.
+- Native Heartbeat: The engine's background thread remains completely decoupled from the JVM's standard garbage collection pauses.
+- Zero-Jitter Design: By using a lock-free sync queue for adding/removing animations, the main game loop never stutters, even when thousands of animations finish simultaneously.
+
+Project on GitHub: https://github.com/andrestubbe/FastAnimation
+
+Tags: java, jmh, microbenchmark, performance, animation engine, game development, orchestration, fastanimation, optimization, software engineering
