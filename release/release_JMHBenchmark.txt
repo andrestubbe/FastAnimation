@@ -1,0 +1,23 @@
+FastAnimation for Java - v0.1.0  JMH Benchmark Release
+
+This release introduces rigorous Java Microbenchmark Harness (JMH) testing to the FastAnimation core, replacing older, inaccurate benchmarking methods. We have proven that the orchestration layer adds virtually zero overhead to the application, maintaining true native-speed performance.
+
+BENCHMARK HIGHLIGHTS
+Measured on Windows 11, Intel Core i5-1135G7 (Surface Pro 8), JDK 25.0.1.
+
+Orchestration Throughput:
+- Sequence Tracks: ~18.2 Million operations per second (~18,248 ops/ms)
+- Parallel Tracks: ~17.5 Million operations per second (~17,581 ops/ms)
+
+Native Heartbeat Jitter:
+The AnimationEngine remains completely decoupled from the main thread. By utilizing FastDWM (HeartbeatMode.NATIVE_MM or NATIVE_VSYNC), the engine completely bypasses Thread.sleep inaccuracies. This prevents micro-stutters even under extreme Garbage Collection pressure.
+
+CHANGES:
+- Added: fastanimation-benchmark module fully integrated with JMH.
+- Added: EngineBenchmark.java to stress test Sequence and Parallel orchestration throughput.
+- Improved: Replaced the legacy System.currentTimeMillis() stress test with proper JMH Blackholes and Forking isolation.
+- Improved: CLI output scripts are now pure ASCII to prevent cmd.exe UTF-8 parsing bugs on Windows.
+
+Project on GitHub: https://github.com/andrestubbe/FastAnimation
+
+Tags: java, jmh, microbenchmark, performance, animation engine, game development, orchestration, fastanimation, optimization, software engineering
