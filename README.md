@@ -14,8 +14,8 @@
 graphics. It is deeply integrated and bundled with **[FastTween](https://github.com/andrestubbe/FastTween)**—our
 zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
 animations in Java.
-
-▶️ [**Watch the 120 FPS Showcase Demo**](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21) &nbsp; | &nbsp; 📊 [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
+ 
+[**Watch the Demo**](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
 <br>
 
