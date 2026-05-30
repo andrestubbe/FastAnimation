@@ -89,7 +89,7 @@ public class Example {
 ## Performance Benchmarks
 
 FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
-▶️ [**Watch the JMH Benchmark on YouTube**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
+[**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
 | Metric / Orchestration Type | Score (ops/ms) | Ops per Second |
 |-----------------------------|----------------|----------------|
