@@ -17,8 +17,6 @@ animations in Java.
  
 [**Watch the Demo**](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
-<br>
-
 [![FastAnimation Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21)
 
 ---
@@ -107,7 +105,6 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 Add the JitPack repository and the dependency to your `pom.xml`:
 
 ```xml
-
 <repositories>
     <repository>
         <id>jitpack.io</id>
@@ -145,7 +142,8 @@ Add the JitPack repository and the dependency to your `pom.xml`:
 ```groovy
 repositories {
     maven { url 'https://jitpack.io' }
-}
+
+
 dependencies {
     implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
     // Recommended for interpolation
@@ -163,7 +161,7 @@ Download the latest JAR directly to add it to your classpath:
 1. 📦 **[fastanimation-v0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/v0.1.0/fastanimation-v0.1.0.jar)** (The Core Library)
 2. 📦 **[fasttween-v0.1.0.jar](https://github.com/andrestubbe/FastTween/releases/download/v0.1.0/fasttween-v0.1.0.jar)** (Recommended for interpolation)
 3. 📦 **[fastdwm-v0.1.0.jar](https://github.com/andrestubbe/FastDWM/releases/download/v0.1.0/fastdwm-v0.1.0.jar)** (Required for NATIVE_MM and NATIVE_VSYNC)
-4. 📦 **[fastcore-v1.0.0.jar](https://github.com/andrestubbe/FastCore/releases/download/v1.0.0/fastcore-v1.0.0.jar)** (Required Native JNI loader)
+4. 📦 **[fastcore-v0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/v0.1.0/fastcore-v0.1.0.jar)** (Required Native JNI loader)
 
 ---
 
@@ -201,5 +199,6 @@ MIT License — See [LICENSE](LICENSE) for details.
 - [FastTheme](https://github.com/andrestubbe/FastTheme) — High-performance native window styling
 
 ---
+
 **Part of the FastJava Ecosystem** — *Making the JVM faster. Small package. Maximum speed. Zero bloat. 🚀📋*
 
