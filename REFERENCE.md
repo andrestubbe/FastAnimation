@@ -41,4 +41,4 @@
 | Linux / macOS | `JAVA` (Native modes require FastDWM platform ports) 🚧 |
 
 ---
-**Part of the FastJava Ecosystem** — *Making the JVM faster.*
+**Part of the FastJava Ecosystem** — *Making the JVM faster. Small package. Maximum speed. Zero bloat. 🚀📋*
