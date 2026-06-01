@@ -15,9 +15,9 @@ graphics. It is deeply integrated and bundled with **[FastTween](https://github.
 zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
 animations in Java.
  
-[**Watch the Demo**](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
+[**Watch the Demo**](https://www.youtube.com/watch?v=AMf8z6-36W0) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
-[![FastAnimation Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=kKmxmaYGPUM&list=PL-mASGDMkCUqJ0bXAJP28ykqPP9RqMMsA&index=21)
+[![FastAnimation Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=AMf8z6-36W0)
 
 ---
 
