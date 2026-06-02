@@ -6,9 +6,17 @@ echo ==========================================
 echo   FastAnimation v0.1.0 - Demo
 echo ==========================================
 echo.
-echo Dependencies resolved from JitPack
-echo.
+echo Installing FastAnimation locally...
+call mvn -q install -DskipTests
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] Build failed.
+    pause
+    exit /b
+)
 
+echo.
+echo Running Demo (deps from JitPack, FastAnimation local)...
+echo.
 cd examples\Demo
 call mvn -q compile exec:java
 if %ERRORLEVEL% NEQ 0 (
