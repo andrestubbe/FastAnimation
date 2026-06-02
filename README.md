@@ -27,7 +27,9 @@ animations in Java.
 - [Quick Start](#quick-start)
 - [Features](#features)
 - [Performance Benchmarks](#performance-benchmarks)
+- [API Quick Reference](#api-quick-reference)
 - [Installation](#installation)
+- [Documentation](#documentation)
 - [Platform Support](#platform-support)
 - [License](#license)
 - [Related Projects](#related-projects)
@@ -95,6 +97,17 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 | **Sequence Tracks**         | ~18,248 ops/ms | > 18.2 Million |
 
 *Measured on Windows 11, Intel Core i5-1135G7 (Surface Pro 8), JDK 25.0.1. The engine bypasses `Thread.sleep` via `FastDWM` to guarantee zero-jitter native heartbeats even under GC pressure.*
+
+---
+
+## API Quick Reference
+
+| Method                   | Description                                                                            |
+|--------------------------|----------------------------------------------------------------------------------------|
+| `setHeartbeatMode(mode)` | Sets the underlying engine ticker (e.g. `HeartbeatMode.NATIVE_VSYNC`).                 |
+| `sequence(tweens...)`    | Orchestrates a sequence where tweens play one after the other.                         |
+| `parallel(tweens...)`    | Orchestrates a group of tweens that play simultaneously.                               |
+| `timeline(keyframes...)` | Orchestrates tweens based on specific percentage-based keyframes in a timeline.        |
 
 ---
 
@@ -171,6 +184,7 @@ Download the latest JAR directly to add it to your classpath:
 * **[REFERENCE.md](docs/REFERENCE.md)**: Exhaustive catalog of timeline strategies and engine architecture.
 * **[PHILOSOPHIE.md](docs/PHILOSOPHIE.md)**: Zero-allocation and low-overhead processing designs.
 * **[ROADMAP.md](docs/ROADMAP.md)**: Planned milestone features and performance extensions.
+* **[CHANGELOG.md](docs/CHANGELOG.md)**: Planned milestone features and performance extensions.
 
 ---
 
