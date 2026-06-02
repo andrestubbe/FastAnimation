@@ -1,12 +1,20 @@
 @echo off
 chcp 65001 >nul
+cd /d "%~dp0"
 
-echo ⚡ Building Main Project...
-call mvn -q clean install -DskipTests
-if %ERRORLEVEL% NEQ 0 ( pause & exit /b )
+echo ==========================================
+echo   FastAnimation v0.1.0 - Demo
+echo ==========================================
+echo.
+echo Dependencies resolved from JitPack
+echo.
 
-echo 🚀 Running Demo...
 cd examples\Demo
 call mvn -q compile exec:java
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo [ERROR] Demo failed to launch.
+    pause
+)
 cd ..\..
 pause
