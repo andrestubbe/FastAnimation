@@ -26,28 +26,28 @@
         <!-- FastAnimation -->
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fastanimation</artifactId>
+            <artifactId>FastAnimation</artifactId>
             <version>0.1.0</version>
         </dependency>
         <!-- All other deps from JitPack -->
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fastcore</artifactId>
+            <artifactId>FastCore</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fasttween</artifactId>
+            <artifactId>FastTween</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fastdwm</artifactId>
+            <artifactId>FastDWM</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fasttheme</artifactId>
+            <artifactId>FastTheme</artifactId>
             <version>0.1.0</version>
         </dependency>
     </dependencies>
