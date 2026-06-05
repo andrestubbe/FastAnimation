@@ -6,7 +6,7 @@
 
     <groupId>com.github.andrestubbe</groupId>
             <artifactId>fastanimation-benchmark</artifactId>
-            <version>0.1.0</version>
+            <version>v0.1.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -25,8 +25,8 @@
     <dependencies>
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
-            <artifactId>fastanimation</artifactId>
-            <version>0.1.0</version>
+            <artifactId>FastAnimation</artifactId>
+            <version>v0.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
