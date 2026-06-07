@@ -1,19 +1,14 @@
 @echo off
+chcp 65001 >nul
 
-echo ==========================================
-echo   FastAnimation v0.1.0 - Demo
-echo ==========================================
-echo.
+echo ⚡ Building Main Project...
+call mvn clean package -DskipTests -q
+if %ERRORLEVEL% NEQ 0 ( echo ❌ Benchmark failed. & pause & exit /b %ERRORLEVEL% )
 
-echo.
-echo Running Demo (fetching dependencies strictly from JitPack)...
-echo.
+echo 🚀 Running Demo...
 cd examples\Demo
-call mvn compile exec:java
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo [ERROR] Demo failed to launch.
-    pause
-)
+call mvn compile exec:java -Dexec.mainClass=fastanimation.Demo -q
+if %ERRORLEVEL% NEQ 0 ( echo ❌ Benchmark failed. & pause & exit /b %ERRORLEVEL% )
+
 cd ..\..
 pause
