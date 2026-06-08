@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 
-echo ⚡ Building Main Project...
+echo ⚡ Building Project...
 call mvn clean package -DskipTests -q
 if %ERRORLEVEL% NEQ 0 ( echo ❌ Benchmark failed. & pause & exit /b %ERRORLEVEL% )
 
