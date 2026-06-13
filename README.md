@@ -193,8 +193,8 @@ Download the latest JAR directly to add it to your classpath:
 | Platform      | Status            |
 |---------------|-------------------|
 | Windows 10/11 | ✅ Fully Supported |
-| Linux         | 🚧 Planned |
-| macOS         | 🚧 Planned |
+| Linux         | 🚧 Planned        |
+| macOS         | 🚧 Planned        |
 
 ---
 
