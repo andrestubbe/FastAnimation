@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+set MAVEN_OPTS=--enable-native-access=ALL-UNNAMED
+
 echo ⚡ Building Project...
 call mvn clean package -DskipTests -q
 if %ERRORLEVEL% NEQ 0 ( echo ❌ Benchmark failed. & pause & exit /b %ERRORLEVEL% )
