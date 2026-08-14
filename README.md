@@ -21,6 +21,32 @@ animations in Java.
 
 ---
 
+## Quick Start
+
+```java
+import fastanimation.FastAnimation;
+import fastanimation.AnimationEngine.HeartbeatMode;
+import fasttween.FastTween;
+
+public class Example {
+    public static void main(String[] args) {
+        // Optional: Switch to High-Precision Native VSync mode
+        FastAnimation.setHeartbeatMode(HeartbeatMode.NATIVE_VSYNC);
+
+        // Orchestrate a sequence of FastTweens seamlessly
+        FastAnimation.sequence(
+                        FastTween.to(0, 100, 1000).onUpdate(val -> System.out.println("X: " + val)),
+                        FastTween.to(1.0f, 0.0f, 500).onUpdate(val -> System.out.println("Fade: " + val))
+                ).onComplete(() -> System.out.println("Animation Complete!"))
+                .start();
+    }
+}
+```
+
+---
+
+---
+
 ## Table of Contents
 
 - [Why FastAnimation?](#why-fastanimation)
@@ -53,29 +79,6 @@ Standard Java animation approaches (like `javax.swing.Timer`, `JavaFX Timeline`,
 
 ---
 
-## Quick Start
-
-```java
-import fastanimation.FastAnimation;
-import fastanimation.AnimationEngine.HeartbeatMode;
-import fasttween.FastTween;
-
-public class Example {
-    public static void main(String[] args) {
-        // Optional: Switch to High-Precision Native VSync mode
-        FastAnimation.setHeartbeatMode(HeartbeatMode.NATIVE_VSYNC);
-
-        // Orchestrate a sequence of FastTweens seamlessly
-        FastAnimation.sequence(
-                        FastTween.to(0, 100, 1000).onUpdate(val -> System.out.println("X: " + val)),
-                        FastTween.to(1.0f, 0.0f, 500).onUpdate(val -> System.out.println("Fade: " + val))
-                ).onComplete(() -> System.out.println("Animation Complete!"))
-                .start();
-    }
-}
-```
-
----
 
 ## Features
 
