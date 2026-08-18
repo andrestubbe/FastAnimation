@@ -1,12 +1,12 @@
 package fastanimation;
 
-import fastdwm.FastDWM;
+import fastexecution.FastExecution;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * FastAnimation Engine - The high-precision heartbeat orchestrator.
+ * FastAnimation Engine - The high-precision heartbeat orchestrator powered by FastExecution.
  */
 public final class AnimationEngine {
 
@@ -17,8 +17,8 @@ public final class AnimationEngine {
     private static final List<Animation> toRemove = new ArrayList<>();
 
     private static HeartbeatMode mode = HeartbeatMode.JAVA;
-    private static Thread engineThread;
-    private static boolean running = false;
+    private static final String ENGINE_LOOP_NAME = "FastAnimation-Heartbeat";
+    private static long lastTime = System.nanoTime();
 
     private AnimationEngine() {
     }
@@ -42,22 +42,26 @@ public final class AnimationEngine {
     }
 
     private static void startEngine() {
-        if (running) return;
-        if (engineThread != null && engineThread.isAlive()) {
-            // Old thread is still dying (e.g. caught in a long operation).
-            // It will exit naturally because running=false. We shouldn't spawn a second one!
-            return;
+        if (FastExecution.isActive(ENGINE_LOOP_NAME)) return;
+
+        Runnable tickTask = AnimationEngine::tick;
+
+        switch (mode) {
+            case NATIVE_VSYNC:
+                FastExecution.loopVSync(ENGINE_LOOP_NAME, 60, tickTask);
+                break;
+            case NATIVE_MM:
+                FastExecution.loop(ENGINE_LOOP_NAME, 1000, tickTask);
+                break;
+            case JAVA:
+            default:
+                FastExecution.loop(ENGINE_LOOP_NAME, 200, tickTask);
+                break;
         }
-        running = true;
-        engineThread = new Thread(AnimationEngine::engineLoop, "FastAnimation-Heartbeat");
-        engineThread.setDaemon(true);
-        engineThread.setPriority(Thread.MAX_PRIORITY);
-        engineThread.start();
     }
 
     public static void stop() {
-        running = false;
-        if (engineThread != null) engineThread.interrupt();
+        FastExecution.stop(ENGINE_LOOP_NAME);
     }
 
     private static void restartEngine() {
@@ -69,65 +73,42 @@ public final class AnimationEngine {
         startEngine();
     }
 
-    private static void engineLoop() {
-        long lastTime = System.nanoTime();
+    private static void tick() {
+        long now = System.nanoTime();
+        float deltaMs = (now - lastTime) / 1_000_000.0f;
+        lastTime = now;
 
-        while (running) {
-            long now = System.nanoTime();
-            float deltaMs = (now - lastTime) / 1_000_000.0f;
-            lastTime = now;
+        // 1. Process pending changes (Fast Sync)
+        synchronized (toAdd) {
+            if (!toAdd.isEmpty()) {
+                animations.addAll(toAdd);
+                toAdd.clear();
+            }
+        }
+        synchronized (toRemove) {
+            if (!toRemove.isEmpty()) {
+                if (toRemove.size() > 20) {
+                    animations.removeAll(new java.util.HashSet<>(toRemove)); // O(N) removal
+                } else {
+                    animations.removeAll(toRemove);
+                }
+                toRemove.clear();
+            }
+        }
 
-            // 1. Process pending changes (Fast Sync)
-            synchronized (toAdd) {
-                if (!toAdd.isEmpty()) {
-                    animations.addAll(toAdd);
-                    toAdd.clear();
+        // 2. High-speed Tick
+        for (Animation anim : animations) {
+            anim.update(deltaMs);
+            if (anim.isComplete()) {
+                synchronized (toRemove) {
+                    toRemove.add(anim);
                 }
             }
-            synchronized (toRemove) {
-                if (!toRemove.isEmpty()) {
-                    if (toRemove.size() > 20) {
-                        animations.removeAll(new java.util.HashSet<>(toRemove)); // O(N) removal
-                    } else {
-                        animations.removeAll(toRemove);
-                    }
-                    toRemove.clear();
-                }
-            }
+        }
 
-            // 2. High-speed Tick
-            for (Animation anim : animations) {
-                anim.update(deltaMs);
-                if (anim.isComplete()) {
-                    synchronized (toRemove) {
-                        toRemove.add(anim);
-                    }
-                }
-            }
-
-            // 3. Precision Timing
-            if (mode == HeartbeatMode.NATIVE_MM) {
-                FastDWM.createPeriodicTimer(1, () -> {
-                }); // Ensure MM timer active
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            } else if (mode == HeartbeatMode.NATIVE_VSYNC) {
-                FastDWM.waitForVSync();
-            } else {
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-
-            if (animations.isEmpty() && toAdd.isEmpty()) {
-                running = false;
-                break;
-            }
+        // 3. Auto-stop when empty
+        if (animations.isEmpty() && toAdd.isEmpty()) {
+            stop();
         }
     }
 

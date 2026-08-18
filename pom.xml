@@ -6,7 +6,7 @@
 
     <groupId>com.github.andrestubbe</groupId>
     <artifactId>FastAnimation</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
 
     <name>FastAnimation</name>
@@ -46,6 +46,13 @@
         <dependency>
             <groupId>com.github.andrestubbe</groupId>
             <artifactId>FastCore</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+
+        <!-- FastExecution - High-precision scheduling engine -->
+        <dependency>
+            <groupId>com.github.andrestubbe</groupId>
+            <artifactId>FastExecution</artifactId>
             <version>0.1.0</version>
         </dependency>
 

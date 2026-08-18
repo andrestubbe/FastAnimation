@@ -1,6 +1,6 @@
-# FastAnimation 0.1.0 [ALPHA-2026-05-17] — Ultra-Fast Native Animation Engine for Java
+# FastAnimation 0.1.1 [ALPHA-2026-08-18] — Ultra-Fast Native Animation Engine for Java
 
-[![Status](https://img.shields.io/badge/status-0.1.0-brightgreen.svg)](https://github.com/andrestubbe/FastAnimation/releases/tag/0.1.0)
+[![Status](https://img.shields.io/badge/status-0.1.1-brightgreen.svg)](https://github.com/andrestubbe/FastAnimation/releases/tag/0.1.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://www.java.com)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010+-lightgrey.svg)]()
@@ -82,10 +82,10 @@ Standard Java animation approaches (like `javax.swing.Timer`, `JavaFX Timeline`,
 
 ## Features
 
-- **⚡ High-Precision Timing**: Sub-millisecond animation updates using a dedicated engine thread.
+- **⚡ High-Precision Timing**: Sub-millisecond animation updates using FastExecution scheduling engine.
 - **📈 Timeline Management**: Complex keyframe sequences and concurrent track orchestration.
 - **📦 Zero GC Pressure**: Reusable animation instances and optimized data structures.
-- **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation.
+- **🖇️ Ecosystem Ready**: Seamlessly integrates with FastTween for interpolation and FastExecution for scheduling.
 
 ---
 
@@ -96,10 +96,10 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 
 | Metric / Orchestration Type | Score (ops/ms) | Ops per Second |
 |-----------------------------|----------------|----------------|
-| **Parallel Tracks**         | ~17,581 ops/ms | > 17.5 Million |
-| **Sequence Tracks**         | ~18,248 ops/ms | > 18.2 Million |
+| **Parallel Tracks**         | ~14,901 ops/ms | > 14.9 Million |
+| **Sequence Tracks**         | ~96,739 ops/ms | > 96.7 Million |
 
-*Measured on Windows 11, Intel Core i5-1135G7 (Surface Pro 8), JDK 25.0.1. The engine bypasses `Thread.sleep` via `FastDWM` to guarantee zero-jitter native heartbeats even under GC pressure.*
+*Measured on Windows 11, Intel Core i5-1135G7 (Surface Pro 8), JDK 21.0.12. The engine now uses FastExecution for high-precision scheduling via FastDWM to guarantee zero-jitter native heartbeats even under GC pressure.*
 
 ---
 
@@ -131,12 +131,18 @@ Add the JitPack repository and the dependency to your `pom.xml`:
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
         <artifactId>fastanimation</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1</version>
     </dependency>
     <!-- Recommended for interpolation -->
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
         <artifactId>fasttween</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+    <!-- Required for high-precision scheduling -->
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fastexecution</artifactId>
         <version>0.1.0</version>
     </dependency>
     <!-- Required for NATIVE_MM and NATIVE_VSYNC -->
@@ -161,9 +167,11 @@ repositories {
 
 
 dependencies {
-    implementation 'com.github.andrestubbe:fastanimation:0.1.0'
+    implementation 'com.github.andrestubbe:fastanimation:0.1.1'
     // Recommended for interpolation
     implementation 'com.github.andrestubbe:fasttween:0.1.0'
+    // Required for high-precision scheduling
+    implementation 'com.github.andrestubbe:fastexecution:0.1.0'
     // Required for NATIVE_MM and NATIVE_VSYNC
     implementation 'com.github.andrestubbe:fastdwm:0.1.0'
     implementation 'com.github.andrestubbe:fastcore:v1.0.0'
@@ -174,10 +182,11 @@ dependencies {
 
 Download the latest JAR directly to add it to your classpath:
 
-1. 📦 **[fastanimation-0.1.0.jar](https://github.com/andrestubbe/FastAnimation/releases/download/0.1.0/fastanimation-0.1.0.jar)** (The Core Library)
+1. 📦 **[fastanimation-0.1.1.jar](https://github.com/andrestubbe/FastAnimation/releases/download/0.1.1/fastanimation-0.1.1.jar)** (The Core Library)
 2. 📦 **[fasttween-0.1.0.jar](https://github.com/andrestubbe/FastTween/releases/download/0.1.0/fasttween-0.1.0.jar)** (Recommended for interpolation)
-3. 📦 **[fastdwm-0.1.0.jar](https://github.com/andrestubbe/FastDWM/releases/download/0.1.0/fastdwm-0.1.0.jar)** (Required for NATIVE_MM and NATIVE_VSYNC)
-4. 📦 **[fastcore-0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/0.1.0/fastcore-0.1.0.jar)** (Required Native JNI loader)
+3. 📦 **[fastexecution-0.1.0.jar](https://github.com/andrestubbe/FastExecution/releases/download/0.1.0/fastexecution-0.1.0.jar)** (Required for high-precision scheduling)
+4. 📦 **[fastdwm-0.1.0.jar](https://github.com/andrestubbe/FastDWM/releases/download/0.1.0/fastdwm-0.1.0.jar)** (Required for NATIVE_MM and NATIVE_VSYNC)
+5. 📦 **[fastcore-0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/0.1.0/fastcore-0.1.0.jar)** (Required Native JNI loader)
 
 ---
 
@@ -211,6 +220,7 @@ MIT License — See [LICENSE](LICENSE) for details.
 
 - [FastTween](https://github.com/andrestubbe/FastTween) — Zero overhead pool-based tweening
 - [FastAnimation](https://github.com/andrestubbe/FastAnimation) — Zero overhead timeline orchestration
+- [FastExecution](https://github.com/andrestubbe/FastExecution) — High-precision scheduling engine
 - [FastDWM](https://github.com/andrestubbe/FastDWM) — Native Desktop Window Manager API
 - [FastCore](https://github.com/andrestubbe/FastCore) — Native JNI Loader and Utilities
 - [FastTheme](https://github.com/andrestubbe/FastTheme) — High-performance native window styling

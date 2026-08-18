@@ -15,11 +15,11 @@ import java.util.concurrent.TimeUnit;
  * orchestration modes, bypassing {@link AnimationEngine} to isolate pure tick math from
  * daemon-thread scheduling overhead.
  *
- * <p>Baseline (Windows 11, i5-1135G7, JDK 25):
+ * <p>Baseline (Windows 11, i5-1135G7, JDK 21.0.12):
  * <pre>
  *   Benchmark                              Mode  Cnt     Score   Error  Units
- *   AnimationBenchmark.benchmarkParallel  thrpt    5  17581.4 ± 312.1  ops/ms
- *   AnimationBenchmark.benchmarkSequence  thrpt    5  18248.7 ± 228.9  ops/ms
+ *   AnimationBenchmark.benchmarkParallel  thrpt    5  14901.3 ±  972.4  ops/ms
+ *   AnimationBenchmark.benchmarkSequence  thrpt    5  96739.7 ±70284.1  ops/ms
  * </pre>
  */
 @BenchmarkMode(Mode.Throughput)
