@@ -318,37 +318,26 @@ public class ParticleTimelineDemo extends Canvas {
 
                     float pSize = particleBaseSize[i] * scale;
 
-                    if (sx >= 2 && sx < WIDTH - 2 && sy >= 2 && sy < HEIGHT - 2) {
-                        int coreIntensity = (int) (Math.min(1.0f, scale * 1.8f) * fog * 255);
-                        int centerIdx = sy * WIDTH + sx;
+                    int rad = (int) Math.max(1, pSize);
+                    int radSq = rad * rad;
 
-                        blendPixel(centerIdx, coreIntensity);
+                    if (sx >= rad && sx < WIDTH - rad && sy >= rad && sy < HEIGHT - rad) {
+                        int baseIntensity = (int) (Math.min(1.0f, scale * 1.8f) * fog * 255);
 
-                        if (pSize > 1.8f) {
-                            int halo1 = coreIntensity >> 1;
-                            int halo2 = coreIntensity >> 3;
+                        // Rasterize smooth round sphere disc directly into flat pixel buffer
+                        for (int dy = -rad; dy <= rad; dy++) {
+                            int dySq = dy * dy;
+                            int rowOffset = (sy + dy) * WIDTH + sx;
 
-                            blendPixel(centerIdx - 1, halo1);
-                            blendPixel(centerIdx + 1, halo1);
-                            blendPixel(centerIdx - WIDTH, halo1);
-                            blendPixel(centerIdx + WIDTH, halo1);
-
-                            if (pSize > 3.0f) {
-                                blendPixel(centerIdx - 2, halo2);
-                                blendPixel(centerIdx + 2, halo2);
-                                blendPixel(centerIdx - WIDTH * 2, halo2);
-                                blendPixel(centerIdx + WIDTH * 2, halo2);
-                                blendPixel(centerIdx - WIDTH - 1, halo2);
-                                blendPixel(centerIdx - WIDTH + 1, halo2);
-                                blendPixel(centerIdx + WIDTH - 1, halo2);
-                                blendPixel(centerIdx + WIDTH + 1, halo2);
+                            for (int dx = -rad; dx <= rad; dx++) {
+                                int distSq = dx * dx + dySq;
+                                if (distSq <= radSq) {
+                                    // Smooth quadratic edge falloff for round shaded sphere look
+                                    float sphereEdge = 1.0f - (float) distSq / (radSq + 1);
+                                    int pixelInt = (int) (baseIntensity * sphereEdge);
+                                    blendPixel(rowOffset + dx, pixelInt);
+                                }
                             }
-                        } else {
-                            int glow = coreIntensity >> 3;
-                            blendPixel(centerIdx - 1, glow);
-                            blendPixel(centerIdx + 1, glow);
-                            blendPixel(centerIdx - WIDTH, glow);
-                            blendPixel(centerIdx + WIDTH, glow);
                         }
                     }
                 }
