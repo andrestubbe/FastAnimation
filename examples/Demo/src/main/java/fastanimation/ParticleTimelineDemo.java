@@ -16,14 +16,15 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Mass 3D Particle Cloud + Tweened Geometry Balls.
+ * FastAnimation Demo 2: Cinematic 3D Particle Realm.
  *
  * <p>Features:
  * <ul>
  *   <li>300 large, smoothly tweened monochrome spheres (FastTween Quad-InOut interpolation)</li>
- *   <li>50,000 harmonic swirling 3D particles tracking the spheres in dynamic multi-orbit trails</li>
- *   <li>Phosphor trail decay for smooth motion blur</li>
- *   <li>Native VSync & FastExecution heartbeat at locked 60 FPS</li>
+ *   <li>50,000 harmonic swirling 3D particles tracking the spheres with dynamic gravitational migration</li>
+ *   <li>Continuous cinematic 3D orbital camera rotation (Yaw + Pitch matrix)</li>
+ *   <li>Sub-pixel Gaussian bloom & glow flare kernel (3x3 luminous cross-splat)</li>
+ *   <li>Phosphor trail decay for smooth optical motion blur at locked 60 FPS</li>
  * </ul>
  */
 public class ParticleTimelineDemo extends Canvas {
@@ -34,7 +35,7 @@ public class ParticleTimelineDemo extends Canvas {
     private static final int BALL_COUNT = 300;
     private static final int PARTICLE_COUNT = 50_000;
     private static final float CUBE_SIZE = 600f;
-    private static final float FOV = 400f;
+    private static final float FOV = 450f;
 
     private static final Ellipse2D ellipse2D = new Ellipse2D.Float();
 
@@ -95,15 +96,15 @@ public class ParticleTimelineDemo extends Canvas {
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles tied to the 300 tweened spheres (3x larger radius)
+        // 2. Initialize 50,000 Particles tied to the 300 tweened spheres
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
             targetBallIndex[i] = bIdx;
 
-            orbitRadius[i] = 36.0f + r.nextFloat() * 195.0f; // 3x wider radius
+            orbitRadius[i] = 40.0f + r.nextFloat() * 220.0f;
             orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
-            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.06f);
+            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.07f);
             orbitTilt[i] = r.nextFloat() * (float) Math.PI;
 
             Ball b = balls.get(bIdx);
@@ -178,6 +179,9 @@ public class ParticleTimelineDemo extends Canvas {
             long lastRenderTime = System.nanoTime();
             Random r = new Random();
 
+            float camYaw = 0f;
+            float camPitch = 0f;
+
             while (true) {
                 long nowLoop = System.nanoTime();
                 if (nowLoop - lastRenderTime < frameTimeTarget) {
@@ -186,26 +190,35 @@ public class ParticleTimelineDemo extends Canvas {
                 }
                 lastRenderTime = nowLoop;
 
-                // 1. Phosphor Trail Decay
+                // 1. Slow, majestic 3D Camera Orbit
+                camYaw += 0.0035f;
+                camPitch = (float) Math.sin(camYaw * 0.5f) * 0.25f;
+
+                float cosY = (float) Math.cos(camYaw);
+                float sinY = (float) Math.sin(camYaw);
+                float cosP = (float) Math.cos(camPitch);
+                float sinP = (float) Math.sin(camPitch);
+
+                // 2. Phosphor Trail Decay with Soft Contrast Retention
                 for (int i = 0; i < pixels.length; i++) {
                     int p = pixels[i];
                     int v = (p & 0xFF);
-                    v = (v * 195) >> 8; // decay factor
+                    v = (v * 198) >> 8; // gentle optical fade
                     pixels[i] = (v << 16) | (v << 8) | v;
                 }
 
-                // 2. Swarm Motion Update: Particles orbit and dynamically migrate between spheres
+                // 3. Swarm Physics & Bloom Splatting for 50,000 Particles
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
 
                     orbitAngle[i] += orbitSpeed[i];
 
-                    // Dynamic target sphere switching: 0.3% chance per frame to migrate to a new sphere
-                    if (r.nextInt(330) == 0) {
+                    // Probabilistic sphere migration (0.4% chance to leap to another sphere)
+                    if (r.nextInt(250) == 0) {
                         targetBallIndex[i] = r.nextInt(BALL_COUNT);
-                        orbitRadius[i] = 36.0f + r.nextFloat() * 195.0f;
-                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.06f);
+                        orbitRadius[i] = 40.0f + r.nextFloat() * 220.0f;
+                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.07f);
                     }
 
                     float radius = orbitRadius[i] * parent.radiusScale;
@@ -215,40 +228,62 @@ public class ParticleTimelineDemo extends Canvas {
                     float oy = (float) (Math.sin(orbitAngle[i]) * Math.cos(tilt) * radius);
                     float oz = (float) (Math.sin(orbitAngle[i]) * Math.sin(tilt) * radius);
 
-                    // Fluid gravitational pull toward new parent sphere
-                    posX[i] += (parent.x + ox - posX[i]) * 0.08f;
-                    posY[i] += (parent.y + oy - posY[i]) * 0.08f;
-                    posZ[i] += (parent.z + oz - posZ[i]) * 0.08f;
+                    // Fluid gravitational pull toward parent sphere
+                    posX[i] += (parent.x + ox - posX[i]) * 0.09f;
+                    posY[i] += (parent.y + oy - posY[i]) * 0.09f;
+                    posZ[i] += (parent.z + oz - posZ[i]) * 0.09f;
 
-                    // 3D -> 2D Perspective Projection
-                    float zDepth = FOV + posZ[i] + CUBE_SIZE;
+                    // Camera 3D Rotation Transform (Yaw + Pitch)
+                    float rx = posX[i] * cosY - posZ[i] * sinY;
+                    float rz = posX[i] * sinY + posZ[i] * cosY;
+                    float ry = posY[i] * cosP - rz * sinP;
+                    rz = posY[i] * sinP + rz * cosP;
+
+                    // Perspective Projection
+                    float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 1.0f) continue;
 
                     float scale = FOV / zDepth;
-                    int sx = (int) (WIDTH / 2f + posX[i] * scale);
-                    int sy = (int) (HEIGHT / 2f + posY[i] * scale);
+                    int sx = (int) (WIDTH / 2f + rx * scale);
+                    int sy = (int) (HEIGHT / 2f + ry * scale);
 
-                    if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
-                        int intensity = (int) (Math.min(1.0f, scale * 1.5f) * 235);
-                        int current = pixels[sy * WIDTH + sx] & 0xFF;
-                        int blended = Math.min(255, current + intensity);
-                        pixels[sy * WIDTH + sx] = (blended << 16) | (blended << 8) | blended;
+                    if (sx >= 1 && sx < WIDTH - 1 && sy >= 1 && sy < HEIGHT - 1) {
+                        int coreIntensity = (int) (Math.min(1.0f, scale * 1.6f) * 255);
+                        int glowIntensity = coreIntensity >> 2; // Sub-pixel flare halo
+
+                        int centerIdx = sy * WIDTH + sx;
+
+                        // Center core
+                        int cur = pixels[centerIdx] & 0xFF;
+                        int bld = Math.min(255, cur + coreIntensity);
+                        pixels[centerIdx] = (bld << 16) | (bld << 8) | bld;
+
+                        // 3x3 Luminous Glow Flare
+                        blendPixel(centerIdx - 1, glowIntensity);
+                        blendPixel(centerIdx + 1, glowIntensity);
+                        blendPixel(centerIdx - WIDTH, glowIntensity);
+                        blendPixel(centerIdx + WIDTH, glowIntensity);
                     }
                 }
 
-                // 3. Render Large Tweened Spheres on Top
+                // 4. Render Large Tweened Spheres with Depth Scaling
                 Graphics2D g2d = screenBuffer.createGraphics();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setColor(Color.WHITE);
 
                 for (Ball b : balls) {
-                    float zDepth = FOV + b.z + CUBE_SIZE;
+                    float rx = b.x * cosY - b.z * sinY;
+                    float rz = b.x * sinY + b.z * cosY;
+                    float ry = b.y * cosP - rz * sinP;
+                    rz = b.y * sinP + rz * cosP;
+
+                    float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 0.1f) continue;
 
                     float scale = FOV / zDepth;
-                    float screenX = WIDTH / 2f + b.x * scale;
-                    float screenY = HEIGHT / 2f + b.y * scale;
-                    float radius = 48f * scale * b.radiusScale;
+                    float screenX = WIDTH / 2f + rx * scale;
+                    float screenY = HEIGHT / 2f + ry * scale;
+                    float radius = 50f * scale * b.radiusScale;
 
                     if (radius > 0) {
                         ellipse2D.setFrame(screenX - radius, screenY - radius, radius * 2, radius * 2);
@@ -257,26 +292,32 @@ public class ParticleTimelineDemo extends Canvas {
                 }
                 g2d.dispose();
 
-                // 4. Present Frame
+                // 5. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 5. FPS Counter in Window Title
+                // 6. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres with 50,000 Orbit Particles | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — Cinematic 3D Orbit Swarm (50,000 Particles + Glow) | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-Coupled").start();
+        }, "Render-Loop-Cinematic").start();
+    }
+
+    private void blendPixel(int index, int add) {
+        int cur = pixels[index] & 0xFF;
+        int res = Math.min(255, cur + add);
+        pixels[index] = (res << 16) | (res << 8) | res;
     }
 
     public static void main(String[] args) {
@@ -284,7 +325,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres with 50,000 Orbit Particles");
+            JFrame frame = new JFrame("FastAnimation — Cinematic 3D Orbit Swarm (50,000 Particles)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
