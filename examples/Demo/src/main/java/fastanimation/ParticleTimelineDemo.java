@@ -13,19 +13,17 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Volumetric 3D FastTween Realm + Hardware-style Software Z-Buffer.
+ * FastAnimation Demo 2: Volumetric 3D FastTween Realm + 3 Dynamic RGB Color Emitters + Z-Buffer.
  *
  * <p>Features:
  * <ul>
- *   <li>Full per-pixel Float Z-Buffer (Depth Buffer) for 100% correct 3D occlusion between spheres and particles</li>
- *   <li>50,000 Particles seamlessly render IN FRONT of, BEHIND, and AROUND spheres with zero depth sorting artifacts</li>
- *   <li>300 Spheres with FastTween Quad-InOut axis keyframes and doubled separation</li>
- *   <li>Atmospheric quadratic depth fog on both spheres and star dust particles</li>
+ *   <li>3 Dynamic 3D Color Emitters (Red, Green, Blue) orbiting the cube perimeter and lighting spheres/particles based on 3D distance</li>
+ *   <li>Full per-pixel Float Z-Buffer (Depth Buffer) for 100% correct 3D occlusion</li>
+ *   <li>50,000 Particles & 300 Spheres colored dynamically by RGB light fields + depth fog</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
@@ -55,7 +53,6 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     private final List<Ball> balls = new ArrayList<>();
-    private final Ball[] sortedBalls = new Ball[BALL_COUNT];
 
     // ---------------------------------------------------------
     // 50k Particle State Arrays (Tied to Spheres)
@@ -103,7 +100,6 @@ public class ParticleTimelineDemo extends Canvas {
             b.z = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
 
             balls.add(b);
-            sortedBalls[i] = b;
 
             animateAxisX(b);
             animateAxisY(b);
@@ -111,7 +107,7 @@ public class ParticleTimelineDemo extends Canvas {
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles with varying physical base sizes
+        // 2. Initialize 50,000 Particles
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
@@ -223,7 +219,43 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // Combined High-Speed Render Loop with Per-Pixel Z-Buffer
+    // Color Emitter Light Field Calculator (RGB based on 3D distance)
+    // ---------------------------------------------------------
+    private static int computeRgbColor(float px, float py, float pz, float fog,
+                                       float rEx, float rEy, float rEz,
+                                       float gEx, float gEy, float gEz,
+                                       float bEx, float bEy, float bEz) {
+        float lightRadius = 750f;
+
+        // Red emitter distance
+        float rDx = px - rEx, rDy = py - rEy, rDz = pz - rEz;
+        float rDist = (float) Math.sqrt(rDx * rDx + rDy * rDy + rDz * rDz);
+        float rWeight = Math.max(0.15f, 1.0f - (rDist / lightRadius));
+
+        // Green emitter distance
+        float gDx = px - gEx, gDy = py - gEy, gDz = pz - gEz;
+        float gDist = (float) Math.sqrt(gDx * gDx + gDy * gDy + gDz * gDz);
+        float gWeight = Math.max(0.15f, 1.0f - (gDist / lightRadius));
+
+        // Blue emitter distance
+        float bDx = px - bEx, bDy = py - bEy, bDz = pz - bEz;
+        float bDist = (float) Math.sqrt(bDx * bDx + bDy * bDy + bDz * bDz);
+        float bWeight = Math.max(0.15f, 1.0f - (bDist / lightRadius));
+
+        // Combine with depth fog
+        int cr = (int) (Math.min(1.0f, rWeight * 1.3f) * fog * 255);
+        int cg = (int) (Math.min(1.0f, gWeight * 1.3f) * fog * 255);
+        int cb = (int) (Math.min(1.0f, bWeight * 1.3f) * fog * 255);
+
+        cr = Math.min(255, Math.max(25, cr));
+        cg = Math.min(255, Math.max(25, cg));
+        cb = Math.min(255, Math.max(25, cb));
+
+        return (cr << 16) | (cg << 8) | cb;
+    }
+
+    // ---------------------------------------------------------
+    // Combined High-Speed Render Loop with RGB Light Emitters & Z-Buffer
     // ---------------------------------------------------------
     public void start() {
         createBufferStrategy(3);
@@ -238,6 +270,7 @@ public class ParticleTimelineDemo extends Canvas {
 
             float camYaw = 0f;
             float camPitch = 0f;
+            float lightPhase = 0f;
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -246,11 +279,25 @@ public class ParticleTimelineDemo extends Canvas {
                     continue;
                 }
                 lastRenderTime = nowLoop;
+                lightPhase += 0.018f;
 
                 // 1. Gentle Sphere Separation
                 updateGentleSeparation();
 
-                // 2. Slow, graceful 3D Camera Orbit
+                // 2. 3 Dynamic RGB Light Emitter Positions orbiting in 3D
+                float rEx = (float) Math.cos(lightPhase) * 550f;
+                float rEy = (float) Math.sin(lightPhase * 0.7f) * 400f;
+                float rEz = (float) Math.sin(lightPhase) * 550f;
+
+                float gEx = (float) Math.cos(lightPhase + 2.094f) * 550f;
+                float gEy = (float) Math.sin((lightPhase + 2.094f) * 0.7f) * 400f;
+                float gEz = (float) Math.sin(lightPhase + 2.094f) * 550f;
+
+                float bEx = (float) Math.cos(lightPhase + 4.188f) * 550f;
+                float bEy = (float) Math.sin((lightPhase + 4.188f) * 0.7f) * 400f;
+                float bEz = (float) Math.sin(lightPhase + 4.188f) * 550f;
+
+                // 3. Slow, graceful 3D Camera Orbit
                 camYaw += 0.002f;
                 camPitch = (float) Math.sin(camYaw * 0.5f) * 0.2f;
 
@@ -259,11 +306,11 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 3. Crisp Screen & Z-Buffer Reset (Float.MAX_VALUE = infinite distance)
+                // 4. Crisp Screen & Z-Buffer Reset
                 Arrays.fill(pixels, 0);
                 Arrays.fill(zBuffer, Float.MAX_VALUE);
 
-                // 4. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer
+                // 5. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer with Dynamic RGB Lighting
                 for (Ball b : balls) {
                     float bx = b.x + b.boidOffsetX;
                     float by = b.y + b.boidOffsetY;
@@ -286,8 +333,8 @@ public class ParticleTimelineDemo extends Canvas {
 
                     float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.08f, Math.min(1.0f, fog));
-                    int shade = (int) (35 + fog * 220);
-                    int rgb = (shade << 16) | (shade << 8) | shade;
+
+                    int rgb = computeRgbColor(bx, by, bz, fog, rEx, rEy, rEz, gEx, gEy, gEz, bEx, bEy, bEz);
 
                     int radSq = radius * radius;
                     int minX = Math.max(0, sx - radius);
@@ -304,7 +351,6 @@ public class ParticleTimelineDemo extends Canvas {
                             int dx = px - sx;
                             int distSq = dx * dx + dySq;
                             if (distSq <= radSq) {
-                                // 3D Sphere surface depth curvature offset
                                 float dz = (float) Math.sqrt(radSq - distSq) / scale;
                                 float pixelZ = b.zDepth - dz;
 
@@ -318,7 +364,7 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 5. Volumetric Orbit Particles with Precise Per-Pixel Z-Buffer Occlusion
+                // 6. Volumetric Orbit Particles with Dynamic RGB Lighting & Z-Buffer Occlusion
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
@@ -363,8 +409,8 @@ public class ParticleTimelineDemo extends Canvas {
 
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.08f, Math.min(1.0f, fog));
-                    int shade = (int) (35 + fog * 220);
-                    int rgb = (shade << 16) | (shade << 8) | shade;
+
+                    int rgb = computeRgbColor(posX[i], posY[i], posZ[i], fog, rEx, rEy, rEz, gEx, gEy, gEz, bEx, bEy, bEz);
 
                     float scale = FOV / zDepth;
                     int sx = (int) (WIDTH / 2f + rx * scale);
@@ -379,7 +425,6 @@ public class ParticleTimelineDemo extends Canvas {
                     int minY = Math.max(0, sy - rad);
                     int maxY = Math.min(HEIGHT - 1, sy + rad);
 
-                    // Z-Buffer tested rasterization: Particles IN FRONT overwrite, BEHIND are occluded
                     for (int py = minY; py <= maxY; py++) {
                         int dy = py - sy;
                         int dySq = dy * dy;
@@ -390,7 +435,6 @@ public class ParticleTimelineDemo extends Canvas {
                             int distSq = dx * dx + dySq;
                             if (distSq <= radSq) {
                                 int idx = rowOffset + px;
-                                // Z-Test: draw if closer than currently buffered pixel depth
                                 if (zDepth < zBuffer[idx]) {
                                     zBuffer[idx] = zDepth;
                                     pixels[idx] = rgb;
@@ -400,26 +444,26 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 6. Present Frame
+                // 7. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 7. FPS Counter in Window Title
+                // 8. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (Per-Pixel Z-Buffer) | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (3x RGB Emitters + Z-Buffer) | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-ZBuffer").start();
+        }, "Render-Loop-RGB-Emitters").start();
     }
 
     private static BufferedImage createRoundIcon() {
@@ -437,7 +481,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Z-Buffer)");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (RGB Emitters)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
