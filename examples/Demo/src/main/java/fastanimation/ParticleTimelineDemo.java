@@ -1,7 +1,6 @@
 package fastanimation;
 
 import fastanimation.AnimationEngine.HeartbeatMode;
-import fastdwm.FastDWM;
 import fasttheme.FastTheme;
 import fasttween.Ease;
 import fasttween.FastTween;
@@ -22,9 +21,9 @@ import java.util.Random;
  * <p>Features:
  * <ul>
  *   <li>300 large, smoothly tweened monochrome spheres (FastTween Quad-InOut interpolation)</li>
- *   <li>50,000 harmonic swirling 3D particles tracking the moving cube potential fields</li>
+ *   <li>50,000 harmonic swirling 3D particles tracking the spheres in dynamic multi-orbit trails</li>
  *   <li>Phosphor trail decay for smooth motion blur</li>
- *   <li>Native VSync & FastExecution heartbeat at 120 FPS</li>
+ *   <li>Native VSync & FastExecution heartbeat at locked 60 FPS</li>
  * </ul>
  */
 public class ParticleTimelineDemo extends Canvas {
@@ -50,17 +49,16 @@ public class ParticleTimelineDemo extends Canvas {
     private final List<Ball> balls = new ArrayList<>();
 
     // ---------------------------------------------------------
-    // 50k Harmonic Particle Arrays (Contiguous Memory)
+    // 50k Particle State Arrays (Tied to Spheres)
     // ---------------------------------------------------------
     private final float[] posX = new float[PARTICLE_COUNT];
     private final float[] posY = new float[PARTICLE_COUNT];
     private final float[] posZ = new float[PARTICLE_COUNT];
-    private final float[] velX = new float[PARTICLE_COUNT];
-    private final float[] velY = new float[PARTICLE_COUNT];
-    private final float[] velZ = new float[PARTICLE_COUNT];
-    private final float[] phase = new float[PARTICLE_COUNT];
-    private final float[] freq = new float[PARTICLE_COUNT];
-    private final float[] amp = new float[PARTICLE_COUNT];
+    private final int[] targetBallIndex = new int[PARTICLE_COUNT];
+    private final float[] orbitRadius = new float[PARTICLE_COUNT];
+    private final float[] orbitAngle = new float[PARTICLE_COUNT];
+    private final float[] orbitSpeed = new float[PARTICLE_COUNT];
+    private final float[] orbitTilt = new float[PARTICLE_COUNT];
 
     private BufferedImage screenBuffer;
     private int[] pixels;
@@ -97,20 +95,21 @@ public class ParticleTimelineDemo extends Canvas {
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles with harmonic motion dynamics
+        // 2. Initialize 50,000 Particles tied to the 300 tweened spheres
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
-            posX[i] = (r.nextFloat() * CUBE_SIZE * 2) - CUBE_SIZE;
-            posY[i] = (r.nextFloat() * CUBE_SIZE * 2) - CUBE_SIZE;
-            posZ[i] = (r.nextFloat() * CUBE_SIZE * 2) - CUBE_SIZE;
+            int bIdx = i % BALL_COUNT;
+            targetBallIndex[i] = bIdx;
 
-            velX[i] = (r.nextFloat() - 0.5f) * 1.5f;
-            velY[i] = (r.nextFloat() - 0.5f) * 1.5f;
-            velZ[i] = (r.nextFloat() - 0.5f) * 1.5f;
+            orbitRadius[i] = 12.0f + r.nextFloat() * 65.0f;
+            orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
+            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.03f + r.nextFloat() * 0.08f);
+            orbitTilt[i] = r.nextFloat() * (float) Math.PI;
 
-            phase[i] = r.nextFloat() * (float) (2 * Math.PI);
-            freq[i] = 0.02f + r.nextFloat() * 0.04f;
-            amp[i] = 2.0f + r.nextFloat() * 4.0f;
+            Ball b = balls.get(bIdx);
+            posX[i] = b.x;
+            posY[i] = b.y;
+            posZ[i] = b.z;
         }
     }
 
@@ -177,7 +176,6 @@ public class ParticleTimelineDemo extends Canvas {
             int frames = 0;
             long frameTimeTarget = 1_000_000_000L / 60; // Locked 60 FPS target
             long lastRenderTime = System.nanoTime();
-            float globalStep = 0f;
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -186,36 +184,32 @@ public class ParticleTimelineDemo extends Canvas {
                     continue;
                 }
                 lastRenderTime = nowLoop;
-                globalStep += 0.016f;
 
                 // 1. Phosphor Trail Decay
                 for (int i = 0; i < pixels.length; i++) {
                     int p = pixels[i];
                     int v = (p & 0xFF);
-                    v = (v * 190) >> 8; // decay factor
+                    v = (v * 195) >> 8; // decay factor
                     pixels[i] = (v << 16) | (v << 8) | v;
                 }
 
-                // 2. Swarm Motion Update & Direct Pixel Splat for 50,000 Particles
+                // 2. Swarm Motion Update: Particles follow and orbit their parent sphere
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
-                    phase[i] += freq[i];
+                    int bIdx = targetBallIndex[i];
+                    Ball parent = balls.get(bIdx);
 
-                    // Quad-InOut harmonic wave motion
-                    float waveX = (float) Math.sin(phase[i]) * amp[i];
-                    float waveY = (float) Math.cos(phase[i] * 0.7f) * amp[i];
-                    float waveZ = (float) Math.sin(phase[i] * 1.3f) * amp[i];
+                    orbitAngle[i] += orbitSpeed[i];
+                    float r = orbitRadius[i] * parent.radiusScale;
+                    float tilt = orbitTilt[i];
 
-                    posX[i] += velX[i] + waveX;
-                    posY[i] += velY[i] + waveY;
-                    posZ[i] += velZ[i] + waveZ;
+                    float ox = (float) (Math.cos(orbitAngle[i]) * r);
+                    float oy = (float) (Math.sin(orbitAngle[i]) * Math.cos(tilt) * r);
+                    float oz = (float) (Math.sin(orbitAngle[i]) * Math.sin(tilt) * r);
 
-                    // Cube bounds wrap-around with smooth ease bounce
-                    if (posX[i] > CUBE_SIZE) posX[i] = -CUBE_SIZE;
-                    else if (posX[i] < -CUBE_SIZE) posX[i] = CUBE_SIZE;
-                    if (posY[i] > CUBE_SIZE) posY[i] = -CUBE_SIZE;
-                    else if (posY[i] < -CUBE_SIZE) posY[i] = CUBE_SIZE;
-                    if (posZ[i] > CUBE_SIZE) posZ[i] = -CUBE_SIZE;
-                    else if (posZ[i] < -CUBE_SIZE) posZ[i] = CUBE_SIZE;
+                    // Smooth attraction to sphere center + orbit offset
+                    posX[i] += (parent.x + ox - posX[i]) * 0.22f;
+                    posY[i] += (parent.y + oy - posY[i]) * 0.22f;
+                    posZ[i] += (parent.z + oz - posZ[i]) * 0.22f;
 
                     // 3D -> 2D Perspective Projection
                     float zDepth = FOV + posZ[i] + CUBE_SIZE;
@@ -226,7 +220,7 @@ public class ParticleTimelineDemo extends Canvas {
                     int sy = (int) (HEIGHT / 2f + posY[i] * scale);
 
                     if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
-                        int intensity = (int) (Math.min(1.0f, scale * 1.5f) * 230);
+                        int intensity = (int) (Math.min(1.0f, scale * 1.6f) * 240);
                         int current = pixels[sy * WIDTH + sx] & 0xFF;
                         int blended = Math.min(255, current + intensity);
                         pixels[sy * WIDTH + sx] = (blended << 16) | (blended << 8) | blended;
@@ -245,7 +239,7 @@ public class ParticleTimelineDemo extends Canvas {
                     float scale = FOV / zDepth;
                     float screenX = WIDTH / 2f + b.x * scale;
                     float screenY = HEIGHT / 2f + b.y * scale;
-                    float radius = 55f * scale * b.radiusScale;
+                    float radius = 48f * scale * b.radiusScale;
 
                     if (radius > 0) {
                         ellipse2D.setFrame(screenX - radius, screenY - radius, radius * 2, radius * 2);
@@ -267,13 +261,13 @@ public class ParticleTimelineDemo extends Canvas {
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Tweened Spheres + 50,000 Particles | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres with 50,000 Orbit Particles | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-Combined").start();
+        }, "Render-Loop-Coupled").start();
     }
 
     public static void main(String[] args) {
@@ -281,7 +275,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres with 50,000 Orbit Particles");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
