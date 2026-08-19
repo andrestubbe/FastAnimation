@@ -331,7 +331,7 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 5. Cinematic Motion Blur Decay (~0.95 retention toward TokyoNight background)
+                // 5. Cinematic Motion Blur Decay (1/3 trail length: ~0.66 retention toward TokyoNight background)
                 int bgR = 26, bgG = 27, bgB = 38;
                 for (int i = 0; i < pixels.length; i++) {
                     int p = pixels[i];
@@ -339,10 +339,10 @@ public class ParticleTimelineDemo extends Canvas {
                     int pg = (p >> 8) & 0xFF;
                     int pb = p & 0xFF;
 
-                    // 0.95 retention factor: pr = bgR + (pr - bgR) * 243 >> 8
-                    pr = bgR + (((pr - bgR) * 243) >> 8);
-                    pg = bgG + (((pg - bgG) * 243) >> 8);
-                    pb = bgB + (((pb - bgB) * 243) >> 8);
+                    // 1/3 as much motion blur: factor 170 / 256 (~0.66)
+                    pr = bgR + (((pr - bgR) * 170) >> 8);
+                    pg = bgG + (((pg - bgG) * 170) >> 8);
+                    pb = bgB + (((pb - bgB) * 170) >> 8);
 
                     pixels[i] = (pr << 16) | (pg << 8) | pb;
                 }
@@ -465,26 +465,35 @@ public class ParticleTimelineDemo extends Canvas {
 
                     float pSize = particleBaseSize[i] * scale;
                     int rad = (int) Math.max(1, pSize);
-                    int radSq = rad * rad;
+                    if (rad <= 1) {
+                        if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
+                            int idx = sy * WIDTH + sx;
+                            if (zDepth < zBuffer[idx]) {
+                                zBuffer[idx] = zDepth;
+                                pixels[idx] = rgb;
+                            }
+                        }
+                    } else {
+                        int radSq = rad * rad;
+                        int minX = Math.max(0, sx - rad);
+                        int maxX = Math.min(WIDTH - 1, sx + rad);
+                        int minY = Math.max(0, sy - rad);
+                        int maxY = Math.min(HEIGHT - 1, sy + rad);
 
-                    int minX = Math.max(0, sx - rad);
-                    int maxX = Math.min(WIDTH - 1, sx + rad);
-                    int minY = Math.max(0, sy - rad);
-                    int maxY = Math.min(HEIGHT - 1, sy + rad);
+                        for (int py = minY; py <= maxY; py++) {
+                            int dy = py - sy;
+                            int dySq = dy * dy;
+                            int rowOffset = py * WIDTH;
 
-                    for (int py = minY; py <= maxY; py++) {
-                        int dy = py - sy;
-                        int dySq = dy * dy;
-                        int rowOffset = py * WIDTH;
-
-                        for (int px = minX; px <= maxX; px++) {
-                            int dx = px - sx;
-                            int distSq = dx * dx + dySq;
-                            if (distSq <= radSq) {
-                                int idx = rowOffset + px;
-                                if (zDepth < zBuffer[idx]) {
-                                    zBuffer[idx] = zDepth;
-                                    pixels[idx] = rgb;
+                            for (int px = minX; px <= maxX; px++) {
+                                int dx = px - sx;
+                                int distSq = dx * dx + dySq;
+                                if (distSq <= radSq) {
+                                    int idx = rowOffset + px;
+                                    if (zDepth < zBuffer[idx]) {
+                                        zBuffer[idx] = zDepth;
+                                        pixels[idx] = rgb;
+                                    }
                                 }
                             }
                         }
