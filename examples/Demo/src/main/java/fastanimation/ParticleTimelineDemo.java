@@ -322,9 +322,10 @@ public class ParticleTimelineDemo extends Canvas {
                     int radSq = rad * rad;
 
                     if (sx >= rad && sx < WIDTH - rad && sy >= rad && sy < HEIGHT - rad) {
-                        int baseIntensity = (int) (Math.min(1.0f, scale * 1.8f) * fog * 255);
+                        // Identical fog shade calculation as the 300 spheres (solid matte white/grey)
+                        int shade = (int) (35 + fog * 220); // 35 to 255 brightness
 
-                        // Rasterize smooth round sphere disc directly into flat pixel buffer
+                        // Rasterize solid anti-aliased sphere disc
                         for (int dy = -rad; dy <= rad; dy++) {
                             int dySq = dy * dy;
                             int rowOffset = (sy + dy) * WIDTH + sx;
@@ -332,10 +333,7 @@ public class ParticleTimelineDemo extends Canvas {
                             for (int dx = -rad; dx <= rad; dx++) {
                                 int distSq = dx * dx + dySq;
                                 if (distSq <= radSq) {
-                                    // Smooth quadratic edge falloff for round shaded sphere look
-                                    float sphereEdge = 1.0f - (float) distSq / (radSq + 1);
-                                    int pixelInt = (int) (baseIntensity * sphereEdge);
-                                    blendPixel(rowOffset + dx, pixelInt);
+                                    setSolidPixel(rowOffset + dx, shade);
                                 }
                             }
                         }
@@ -404,6 +402,13 @@ public class ParticleTimelineDemo extends Canvas {
                 }
             }
         }, "Render-Loop-DepthFog").start();
+    }
+
+    private void setSolidPixel(int index, int shade) {
+        int cur = pixels[index] & 0xFF;
+        if (shade > cur) {
+            pixels[index] = (shade << 16) | (shade << 8) | shade;
+        }
     }
 
     private void blendPixel(int index, int add) {
