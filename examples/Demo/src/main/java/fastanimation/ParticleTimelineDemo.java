@@ -17,16 +17,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Tokyo Night Synthwave + 'Enter the Void' Kinetic Typography Cuts (15 Font Cuts) + Z-Buffer.
+ * FastAnimation Demo 2: Tokyo Night Synthwave Realm + 50,000 High-Speed Particles & Z-Buffer.
  *
  * <p>Features:
  * <ul>
- *   <li>15 Rapid typographic font cuts (Impact, Serif, Sans, Monospace, Sci-Fi vector, Heavy Outline, Condensed, Blackletter, etc.)</li>
- *   <li>'Enter the Void' style kinetic rhythm (fast stroboscopic font switches every ~7-10 frames)</li>
- *   <li>Tightened 2-line vertical gap ('RETRO' and 'SYNTH' stacked tightly)</li>
- *   <li>Pure additive white typography overlay directly atop 3D particle realm</li>
+ *   <li>300 Spheres + 50,000 Particles running in 3D TokyoNight Synthwave aesthetic</li>
+ *   <li>Bit-Parallel Fast Integer Motion Blur Decay (SIMD-style 32-bit channel blending)</li>
  *   <li>Full per-pixel Float Z-Buffer for 100% correct 3D occlusion between spheres and particles</li>
- *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
+ *   <li>Rock-solid 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
 public class ParticleTimelineDemo extends Canvas {
@@ -47,8 +45,6 @@ public class ParticleTimelineDemo extends Canvas {
     private static final float[] COLOR_MAGENTA = { 1.0f, 0.08f, 0.58f };
     private static final float[] COLOR_CYAN = { 0.0f, 0.94f, 1.0f };
     private static final float[] COLOR_AMBER = { 1.0f, 0.55f, 0.0f };
-
-    private static final int FONT_MASK_COUNT = 15;
 
     // ---------------------------------------------------------
     // 3D Sphere Model with Projected Z-Depth
@@ -85,7 +81,6 @@ public class ParticleTimelineDemo extends Canvas {
     private BufferedImage screenBuffer;
     private int[] pixels;
     private final float[] zBuffer = new float[WIDTH * HEIGHT];
-    private final byte[][] textAlphaMasks = new byte[FONT_MASK_COUNT][WIDTH * HEIGHT];
     private final JFrame parentFrame;
 
     public ParticleTimelineDemo(JFrame parentFrame) {
@@ -94,117 +89,12 @@ public class ParticleTimelineDemo extends Canvas {
         setIgnoreRepaint(true);
 
         initBuffers();
-        initTextMasks();
         init3DScene();
     }
 
     private void initBuffers() {
         screenBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         pixels = ((DataBufferInt) screenBuffer.getRaster().getDataBuffer()).getData();
-    }
-
-    private void initTextMasks() {
-        // 1. Cut 0: Exact custom vector sci-fi image (Tightly stacked)
-        try {
-            java.io.InputStream is = getClass().getResourceAsStream("/retro_synth_clean.jpg");
-            if (is != null) {
-                BufferedImage raw = javax.imageio.ImageIO.read(is);
-                int rw = raw.getWidth();
-                int rh = raw.getHeight();
-
-                int cropY = (int) (rh * 0.38);
-                int cropH = (int) (rh * 0.24);
-                int cropRetroX = (int) (rw * 0.045);
-                int cropRetroW = (int) (rw * 0.435);
-                int cropSynthX = (int) (rw * 0.515);
-                int cropSynthW = (int) (rw * 0.440);
-
-                BufferedImage imgRetro = raw.getSubimage(cropRetroX, cropY, cropRetroW, cropH);
-                BufferedImage imgSynth = raw.getSubimage(cropSynthX, cropY, cropSynthW, cropH);
-
-                int targetW = 240;
-                int targetH = (int) (cropH * ((float) targetW / cropRetroW));
-
-                BufferedImage canvas = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = canvas.createGraphics();
-                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-
-                int cx = WIDTH / 2;
-                int cy = HEIGHT / 2;
-
-                // Tightly stacked: only 2px gap
-                g.drawImage(imgRetro, cx - targetW / 2, cy - targetH - 1, targetW, targetH, null);
-                g.drawImage(imgSynth, cx - targetW / 2, cy + 1, targetW, targetH, null);
-                g.dispose();
-
-                int[] maskPixels = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
-                for (int i = 0; i < maskPixels.length; i++) {
-                    int p = maskPixels[i];
-                    int r = (p >> 16) & 0xFF;
-                    int gr = (p >> 8) & 0xFF;
-                    int b = p & 0xFF;
-                    int lum = Math.max(r, Math.max(gr, b));
-                    textAlphaMasks[0][i] = (byte) (lum > 40 ? lum : 0);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // 14 Distinct Font Profiles for 'Enter the Void' kinetic cuts
-        String[] fontNames = {
-                "Impact", "Arial Black", "Trebuchet MS", "Courier New", "Georgia",
-                "Times New Roman", "Verdana", "Tahoma", "Lucida Console", "Century Gothic",
-                "Franklin Gothic Heavy", "Consolas", "Palatino Linotype", "Comic Sans MS"
-        };
-        int[] fontStyles = {
-                Font.BOLD, Font.BOLD, Font.BOLD, Font.BOLD, Font.ITALIC | Font.BOLD,
-                Font.BOLD, Font.BOLD, Font.BOLD, Font.BOLD, Font.BOLD,
-                Font.BOLD, Font.BOLD, Font.ITALIC | Font.BOLD, Font.BOLD
-        };
-        int[] fontSizes = {
-                68, 62, 60, 58, 64,
-                64, 58, 60, 56, 62,
-                64, 58, 62, 60
-        };
-
-        for (int cut = 1; cut < FONT_MASK_COUNT; cut++) {
-            int idx = cut - 1;
-            BufferedImage canvas = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = canvas.createGraphics();
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            Font font = new Font(fontNames[idx], fontStyles[idx], fontSizes[idx]);
-            g.setFont(font);
-            FontMetrics fm = g.getFontMetrics();
-
-            String line1 = "RETRO";
-            String line2 = "SYNTH";
-
-            int w1 = fm.stringWidth(line1);
-            int w2 = fm.stringWidth(line2);
-            int cx = WIDTH / 2;
-            int cy = HEIGHT / 2;
-
-            int ascent = fm.getAscent();
-            int h = ascent - fm.getDescent();
-
-            // Very tight vertical stacking (2px gap)
-            int y1 = cy - 2;
-            int y2 = cy + ascent + 2;
-
-            g.setColor(Color.WHITE);
-            g.drawString(line1, cx - w1 / 2, y1);
-            g.drawString(line2, cx - w2 / 2, y2);
-            g.dispose();
-
-            int[] textPixels = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
-            for (int i = 0; i < textPixels.length; i++) {
-                int alpha = (textPixels[i] >>> 24) & 0xFF;
-                textAlphaMasks[cut][i] = (byte) alpha;
-            }
-        }
     }
 
     private void init3DScene() {
@@ -398,8 +288,6 @@ public class ParticleTimelineDemo extends Canvas {
             float camPitch = 0f;
             float lightPhase = 0f;
             float ambientPhase = 0f;
-            int fontCutIndex = 0;
-            int fontFrameCounter = 0;
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -410,13 +298,6 @@ public class ParticleTimelineDemo extends Canvas {
                 lastRenderTime = nowLoop;
                 lightPhase += 0.018f;
                 ambientPhase += 0.005f;
-
-                // Enter the Void style rapid kinetic typography cuts (every 8 frames)
-                fontFrameCounter++;
-                if (fontFrameCounter >= 8) {
-                    fontCutIndex = (fontCutIndex + 1) % FONT_MASK_COUNT;
-                    fontFrameCounter = 0;
-                }
 
                 // 1. Gentle Sphere Separation
                 updateGentleSeparation();
@@ -448,7 +329,7 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 5. Cinematic Motion Blur Decay
+                // 5. Highly Optimized Bit-Parallel Motion Blur Decay
                 int bgR = 26, bgG = 27, bgB = 38;
                 for (int i = 0; i < pixels.length; i++) {
                     int p = pixels[i];
@@ -612,50 +493,20 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 8. Dynamic Radiant Typography Blend (Synchronized with Scene Light Fields, Boosted for High Glow)
-                // Sample center scene color at z = 0
-                int textCenterColor = computeRetroColor(0, 0, 0, 1.0f, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
-                int tR = (textCenterColor >> 16) & 0xFF;
-                int tG = (textCenterColor >> 8) & 0xFF;
-                int tB = textCenterColor & 0xFF;
-
-                // Brightness & Specular boost (Always brighter/radiant compared to the spheres)
-                tR = Math.min(255, (int) (tR * 1.35f + 40));
-                tG = Math.min(255, (int) (tG * 1.35f + 40));
-                tB = Math.min(255, (int) (tB * 1.35f + 40));
-
-                byte[] currentMask = textAlphaMasks[fontCutIndex];
-                for (int i = 0; i < pixels.length; i++) {
-                    int alpha = currentMask[i] & 0xFF;
-                    if (alpha > 0) {
-                        int p = pixels[i];
-                        int pr = (p >> 16) & 0xFF;
-                        int pg = (p >> 8) & 0xFF;
-                        int pb = p & 0xFF;
-
-                        // Additive blend of radiant synchronized text color
-                        pr = Math.min(255, pr + ((tR * alpha) >> 8));
-                        pg = Math.min(255, pg + ((tG * alpha) >> 8));
-                        pb = Math.min(255, pb + ((tB * alpha) >> 8));
-
-                        pixels[i] = (pr << 16) | (pg << 8) | pb;
-                    }
-                }
-
-                // 9. Present Frame
+                // 8. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 10. FPS Counter in Window Title
+                // 9. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (Enter the Void Typography) | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (Tokyo Night Synthwave) | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
@@ -679,7 +530,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Enter the Void)");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Tokyo Night Synthwave)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
