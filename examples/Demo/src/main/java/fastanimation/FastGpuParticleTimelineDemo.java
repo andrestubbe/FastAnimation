@@ -399,6 +399,12 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     }
                 }
 
+                int[] sphereBaseColors = new int[BALL_COUNT];
+                for (int b = 0; b < BALL_COUNT; b++) {
+                    Ball ball = balls.get(b);
+                    sphereBaseColors[b] = computeRetroColor(ball.x + ball.boidOffsetX, ball.y + ball.boidOffsetY, ball.z + ball.boidOffsetZ, 1.0f, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
+                }
+
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
@@ -448,7 +454,14 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.35f, Math.min(1.0f, fog));
 
-                    int rgb = computeRetroColor(posX[i], posY[i], posZ[i], fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
+                    int baseColor = sphereBaseColors[bIdx];
+                    int sr = (baseColor >> 16) & 0xFF;
+                    int sg = (baseColor >> 8) & 0xFF;
+                    int sb = baseColor & 0xFF;
+                    int cr = (int) (26 + (sr - 26) * fog);
+                    int cg = (int) (27 + (sg - 27) * fog);
+                    int cb = (int) (38 + (sb - 38) * fog);
+                    int rgb = (cr << 16) | (cg << 8) | cb;
 
                     float scale = FOV / zDepth;
                     int sx = (int) (WIDTH / 2f + rx * scale);
