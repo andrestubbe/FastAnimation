@@ -38,9 +38,9 @@ public class ParticleTimelineDemo extends Canvas {
     private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
 
-    // Atmospheric Fog Range
-    private static final float FOG_NEAR = 150f;
-    private static final float FOG_FAR = 1550f;
+    // Atmospheric Fog Range (Expanded range for clearer visibility)
+    private static final float FOG_NEAR = 100f;
+    private static final float FOG_FAR = 2400f;
 
     // Retro Neon Palette Constants (RGB Float Weights)
     private static final float[] COLOR_MAGENTA = { 1.0f, 0.08f, 0.58f };
@@ -370,7 +370,7 @@ public class ParticleTimelineDemo extends Canvas {
                     if (radius <= 0) continue;
 
                     float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.08f, Math.min(1.0f, fog));
+                    fog = Math.max(0.35f, Math.min(1.0f, fog)); // Softer fog, much higher base visibility
 
                     int rgb = computeRetroColor(bx, by, bz, fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
@@ -455,7 +455,7 @@ public class ParticleTimelineDemo extends Canvas {
                     if (zDepth <= 1.0f) continue;
 
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.08f, Math.min(1.0f, fog));
+                    fog = Math.max(0.35f, Math.min(1.0f, fog)); // Softer fog, much higher base visibility
 
                     int rgb = computeRetroColor(posX[i], posY[i], posZ[i], fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
