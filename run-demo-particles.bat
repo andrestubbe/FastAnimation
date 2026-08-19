@@ -13,7 +13,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo Running Particle Timeline Demo (50,000 Particles)...
 cd examples\Demo
-call mvn compile exec:java -Dexec.mainClass=fastanimation.demo.ParticleTimelineDemo -q
+call mvn compile exec:java -Dexec.mainClass="fastanimation.demo.ParticleTimelineDemo" -q
 if %ERRORLEVEL% NEQ 0 (
     echo Demo failed.
     pause
