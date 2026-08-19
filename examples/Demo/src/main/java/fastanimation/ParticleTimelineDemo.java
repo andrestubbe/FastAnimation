@@ -102,7 +102,7 @@ public class ParticleTimelineDemo extends Canvas {
             int bIdx = i % BALL_COUNT;
             targetBallIndex[i] = bIdx;
 
-            orbitRadius[i] = 40.0f + r.nextFloat() * 220.0f;
+            orbitRadius[i] = 18.0f + r.nextFloat() * 105.0f; // Halved orbit radius
             orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
             orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.07f);
             orbitTilt[i] = r.nextFloat() * (float) Math.PI;
@@ -212,7 +212,7 @@ public class ParticleTimelineDemo extends Canvas {
                     // Probabilistic sphere migration (0.4% chance to leap to another sphere)
                     if (r.nextInt(250) == 0) {
                         targetBallIndex[i] = r.nextInt(BALL_COUNT);
-                        orbitRadius[i] = 40.0f + r.nextFloat() * 220.0f;
+                        orbitRadius[i] = 18.0f + r.nextFloat() * 105.0f; // Halved orbit radius
                         orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.07f);
                     }
 
