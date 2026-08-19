@@ -95,15 +95,15 @@ public class ParticleTimelineDemo extends Canvas {
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles tied to the 300 tweened spheres
+        // 2. Initialize 50,000 Particles tied to the 300 tweened spheres (3x larger radius)
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
             targetBallIndex[i] = bIdx;
 
-            orbitRadius[i] = 12.0f + r.nextFloat() * 65.0f;
+            orbitRadius[i] = 36.0f + r.nextFloat() * 195.0f; // 3x wider radius
             orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
-            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.03f + r.nextFloat() * 0.08f);
+            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.06f);
             orbitTilt[i] = r.nextFloat() * (float) Math.PI;
 
             Ball b = balls.get(bIdx);
@@ -176,6 +176,7 @@ public class ParticleTimelineDemo extends Canvas {
             int frames = 0;
             long frameTimeTarget = 1_000_000_000L / 60; // Locked 60 FPS target
             long lastRenderTime = System.nanoTime();
+            Random r = new Random();
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -193,23 +194,31 @@ public class ParticleTimelineDemo extends Canvas {
                     pixels[i] = (v << 16) | (v << 8) | v;
                 }
 
-                // 2. Swarm Motion Update: Particles follow and orbit their parent sphere
+                // 2. Swarm Motion Update: Particles orbit and dynamically migrate between spheres
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
 
                     orbitAngle[i] += orbitSpeed[i];
-                    float r = orbitRadius[i] * parent.radiusScale;
+
+                    // Dynamic target sphere switching: 0.3% chance per frame to migrate to a new sphere
+                    if (r.nextInt(330) == 0) {
+                        targetBallIndex[i] = r.nextInt(BALL_COUNT);
+                        orbitRadius[i] = 36.0f + r.nextFloat() * 195.0f;
+                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.06f);
+                    }
+
+                    float radius = orbitRadius[i] * parent.radiusScale;
                     float tilt = orbitTilt[i];
 
-                    float ox = (float) (Math.cos(orbitAngle[i]) * r);
-                    float oy = (float) (Math.sin(orbitAngle[i]) * Math.cos(tilt) * r);
-                    float oz = (float) (Math.sin(orbitAngle[i]) * Math.sin(tilt) * r);
+                    float ox = (float) (Math.cos(orbitAngle[i]) * radius);
+                    float oy = (float) (Math.sin(orbitAngle[i]) * Math.cos(tilt) * radius);
+                    float oz = (float) (Math.sin(orbitAngle[i]) * Math.sin(tilt) * radius);
 
-                    // Smooth attraction to sphere center + orbit offset
-                    posX[i] += (parent.x + ox - posX[i]) * 0.22f;
-                    posY[i] += (parent.y + oy - posY[i]) * 0.22f;
-                    posZ[i] += (parent.z + oz - posZ[i]) * 0.22f;
+                    // Fluid gravitational pull toward new parent sphere
+                    posX[i] += (parent.x + ox - posX[i]) * 0.08f;
+                    posY[i] += (parent.y + oy - posY[i]) * 0.08f;
+                    posZ[i] += (parent.z + oz - posZ[i]) * 0.08f;
 
                     // 3D -> 2D Perspective Projection
                     float zDepth = FOV + posZ[i] + CUBE_SIZE;
@@ -220,7 +229,7 @@ public class ParticleTimelineDemo extends Canvas {
                     int sy = (int) (HEIGHT / 2f + posY[i] * scale);
 
                     if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
-                        int intensity = (int) (Math.min(1.0f, scale * 1.6f) * 240);
+                        int intensity = (int) (Math.min(1.0f, scale * 1.5f) * 235);
                         int current = pixels[sy * WIDTH + sx] & 0xFF;
                         int blended = Math.min(255, current + intensity);
                         pixels[sy * WIDTH + sx] = (blended << 16) | (blended << 8) | blended;
