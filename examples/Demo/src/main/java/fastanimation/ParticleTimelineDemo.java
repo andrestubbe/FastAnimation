@@ -190,21 +190,21 @@ public class ParticleTimelineDemo extends Canvas {
             }
 
             if (count > 0) {
-                // Alignment
+                // Alignment (Subtle directional flow)
                 aliX /= count;
                 aliY /= count;
                 aliZ /= count;
-                ax += (aliX - b.vx) * 0.05f;
-                ay += (aliY - b.vy) * 0.05f;
-                az += (aliZ - b.vz) * 0.05f;
+                ax += (aliX - b.vx) * 0.015f;
+                ay += (aliY - b.vy) * 0.015f;
+                az += (aliZ - b.vz) * 0.015f;
 
-                // Cohesion (Low to avoid tight blob clumping)
+                // Cohesion (Minimal attraction to prevent any center-blobs)
                 cohX /= count;
                 cohY /= count;
                 cohZ /= count;
-                ax += (cohX - b.x) * 0.0008f;
-                ay += (cohY - b.y) * 0.0008f;
-                az += (cohZ - b.z) * 0.0008f;
+                ax += (cohX - b.x) * 0.00015f;
+                ay += (cohY - b.y) * 0.00015f;
+                az += (cohZ - b.z) * 0.00015f;
             }
 
             // Boundary containment box
