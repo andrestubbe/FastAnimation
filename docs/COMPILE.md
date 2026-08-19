@@ -33,8 +33,8 @@ mvn compile exec:java
 <dependencies>
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
-        <artifactId>fastanimation</artifactId>
-        <version>v0.1.0</version>
+        <artifactId>FastAnimation</artifactId>
+        <version>0.1.1</version>
     </dependency>
 </dependencies>
 ```
@@ -47,7 +47,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.andrestubbe:fastanimation:v0.1.0'
+    implementation 'com.github.andrestubbe:FastAnimation:0.1.1'
 }
 ```
 
