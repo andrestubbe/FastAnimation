@@ -3,53 +3,58 @@ YOUTUBE VIDEO RELEASE
 ================================================================================
 
 TITLE:
-FastAnimation: 300 Spheres + 50,000 Particles at 60 FPS (Zero-GC FastJava Engine)
+FastAnimation and FastGPU: 300 Spheres and 50,000 Particles at 60 FPS (Zero GC FastJava Engine)
 
 DESCRIPTION:
-What happens when you push Java's raw math and software rasterization to the absolute limit?
+What happens when you push Java raw math, hardware acceleration, and software rasterization to the absolute limit?
 
-In this demo, FastAnimation orchestrates 300 independent FastTween spheres (Quad-InOut easing) alongside 50,000 live 3D particles that dynamically orbit, track, and migrate across the spheres in real-time.
+In this demo, FastAnimation orchestrates 300 independent FastTween spheres alongside 50,000 live 3D particles that dynamically orbit, track, and migrate across the spheres in real time.
 
-Zero GC-stutters. Zero external dependencies. Zero GPU bloat. Just pure, contiguous memory arrays, native Windows DWM timing, and mathematical precision.
+FastGPU powers the high throughput parallel compute pipelines while FastAnimation drives the timeline orchestration. Zero GC stutters. Zero external dependencies. Contiguous memory arrays, native Windows DWM timing, and per pixel depth buffers.
 
-🔥 TECHNICAL HIGHLIGHTS:
-- ⚡ 50,000 Dynamic Orbit Particles: Contiguous float-array memory buffers with 3D perspective projection and phosphor decay trails.
-- 🪐 Gravitational Sphere Migration: Particles smoothly transfer across 300 tweened target spheres with tri-radial orbital spans.
-- ⏱️ Native Heartbeat Timing: Hooked directly into Windows Multimedia Timers (FastDWM / FastExecution) for ~1ms precision loops without OS scheduler jitter.
-- 🛡️ Zero-Allocation Hotpath: 100% allocation-free render pipeline—no object churn, eliminating Garbage Collection stalls entirely.
-- 🎨 Immersive Dark Aesthetic: FastTheme native Win32 window integration with seamless black-and-white phosphor contrast.
+TECHNICAL HIGHLIGHTS:
+* 50,000 Dynamic Orbit Particles: Contiguous float array memory buffers with 3D perspective projection and cinematic motion blur.
+* FastGPU and FastAnimation Synergy: Unified hardware compute throughput combined with sub millisecond timeline scheduling.
+* Per Pixel Float Z Buffer: Software depth buffer delivering mathematically correct 3D occlusion between spheres and particles.
+* Dynamic RGB Light Fields: 3 orbital point emitters casting real time specular highlights onto a Tokyo Night palette.
+* Native Heartbeat Timing: Hooked directly into Windows Multimedia Timers via FastDWM and FastExecution for sub millisecond precision loops.
+* Zero Allocation Hotpath: Allocation free render pipeline with no object churn, eliminating Garbage Collection stalls entirely.
 
-📌 GITHUB REPOSITORIES:
-- FastAnimation: https://github.com/andrestubbe/FastAnimation
-- FastExecution: https://github.com/andrestubbe/FastExecution
-- FastTween: https://github.com/andrestubbe/FastTween
-- FastDWM: https://github.com/andrestubbe/FastDWM
-- FastCore: https://github.com/andrestubbe/FastCore
+GITHUB REPOSITORIES:
+* FastAnimation: https://github.com/andrestubbe/FastAnimation
+* FastGPU: https://github.com/andrestubbe/FastGPU
+* FastExecution: https://github.com/andrestubbe/FastExecution
+* FastTween: https://github.com/andrestubbe/FastTween
+* FastDWM: https://github.com/andrestubbe/FastDWM
+* FastCore: https://github.com/andrestubbe/FastCore
 
-💡 OUR PHILOSOPHY:
+OUR PHILOSOPHY:
 No copies. Contiguous buffers. Native timing. Zero framework overhead. Making the JVM faster.
 
 TAGS:
-Java, FastJava, AnimationEngine, FastAnimation, FastTween, ParticleSimulation, 60FPS, ZeroGC, Performance, JNI, CreativeCoding, Java2D, SoftwareRendering
+Java, FastJava, AnimationEngine, FastAnimation, FastGPU, FastTween, ParticleSimulation, 60FPS, ZeroGC, Performance, JNI, CreativeCoding, Java2D, SoftwareRendering, TokyoNight
 
 
 ================================================================================
 LINKEDIN POST
 ================================================================================
 
-Can the standard JVM render 50,000 3D particles and 300 interpolated spheres at a locked 60 FPS without touching the Garbage Collector? 🚀
+Can the standard JVM render 50,000 3D particles and 300 interpolated spheres at a locked 60 FPS without touching the Garbage Collector?
 
-Here is the latest benchmark and visual demo for **FastAnimation** (part of the FastJava ecosystem):
+Here is the latest benchmark and visual demo for FastAnimation and FastGPU (part of the FastJava ecosystem).
 
-🎯 What is happening under the hood:
-1️⃣ **300 Concurrent Tweened Spheres**: Continuous 3D Quad-InOut axis tweens powered by FastTween without object allocation.
-2️⃣ **50,000 Swarm Particles**: Contiguous flat-memory arrays calculating real-time 3D orbits, gravitational sphere migration, and perspective projection.
-3️⃣ **Sub-Millisecond Native Heartbeats**: Bypassing Java’s inaccurate `Thread.sleep` through FastExecution & FastDWM native multimedia timers.
-4️⃣ **Phosphor Trail Software Blending**: Fast pixel manipulation and decaying trail buffers rendered straight to a 120/60 FPS BufferStrategy.
+What is happening under the hood:
 
-Java doesn't have to be slow, bloated, or stalled by GC pauses. When you architect for flat memory layouts and native OS precision, the JVM delivers workstation-grade graphics performance.
+1. 300 Concurrent Tweened Spheres: Continuous 3D Quad InOut axis tweens powered by FastTween without object allocation.
+2. 50,000 Swarm Particles: Contiguous flat memory arrays calculating real time 3D orbits, gravitational sphere migration, and perspective projection.
+3. FastGPU Accelerated Compute: High throughput parallel processing paired with FastAnimation timeline orchestration.
+4. Per Pixel Float Z Buffer: Real time software depth testing for accurate 3D occlusion between spheres and particles.
+5. Tokyo Night Retro Atmosphere: Multi emitter dynamic lighting, distance fog attenuation, and cinematic motion blur trails.
+6. Sub Millisecond Native Heartbeats: Bypassing imprecise Java timers through FastExecution and FastDWM native multimedia timers.
 
-👉 GitHub: https://github.com/andrestubbe/FastAnimation
-👉 Full ecosystem: https://github.com/andrestubbe
+Java does not have to be slow, bloated, or stalled by GC pauses. When you architect for flat memory layouts and native OS precision, the JVM delivers workstation grade graphics performance.
 
-#Java #Performance #Graphics #CreativeCoding #SoftwareEngineering #FastJava #ZeroGC #GameDev #JNI
+GitHub: https://github.com/andrestubbe/FastAnimation
+Full ecosystem: https://github.com/andrestubbe
+
+#Java #Performance #Graphics #CreativeCoding #SoftwareEngineering #FastJava #FastGPU #ZeroGC #GameDev #JNI
