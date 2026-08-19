@@ -36,25 +36,34 @@ Java, FastJava, AnimationEngine, FastAnimation, FastGPU, FastTween, ParticleSimu
 
 
 ================================================================================
-LINKEDIN POST
+LINKEDIN POST (ANDRE STUBBE STYLE)
 ================================================================================
 
-Can the standard JVM render 50,000 3D particles and 300 interpolated spheres at a locked 60 FPS without touching the Garbage Collector?
+Ich wollte eigentlich nur testen, ob meine Tablet PC GPU ueberhaupt irgendwas fuer AI taugt. Tut sie nicht. Aber fuer Partikel reicht es noch.
 
-Here is the latest benchmark and visual demo for FastAnimation and FastGPU (part of the FastJava ecosystem).
+Und weil ich mal wieder zu viel Tokyo Night Theming angeguckt habe, ist daraus ein kleines Experiment geworden: Was passiert, wenn man FastGPU und FastAnimation kreuzt?
 
-What is happening under the hood:
+Spoiler: Es laeuft. Und zwar schneller, als die JVM eigentlich erlaubt.
 
-1. 300 Concurrent Tweened Spheres: Continuous 3D Quad InOut axis tweens powered by FastTween without object allocation.
-2. 50,000 Swarm Particles: Contiguous flat memory arrays calculating real time 3D orbits, gravitational sphere migration, and perspective projection.
-3. FastGPU Accelerated Compute: High throughput parallel processing paired with FastAnimation timeline orchestration.
-4. Per Pixel Float Z Buffer: Real time software depth testing for accurate 3D occlusion between spheres and particles.
-5. Tokyo Night Retro Atmosphere: Multi emitter dynamic lighting, distance fog attenuation, and cinematic motion blur trails.
-6. Sub Millisecond Native Heartbeats: Bypassing imprecise Java timers through FastExecution and FastDWM native multimedia timers.
+Etwas Besseres als Kugeln als Test in Pseudo 3D ist mir auf die Schnelle nicht eingefallen. Also gibt es jetzt 300 interpolierte Spheres, die sich gleichzeitig bewegen, plus 50.000 Partikel, die um die Kugeln kreisen und wandern.
 
-Java does not have to be slow, bloated, or stalled by GC pauses. When you architect for flat memory layouts and native OS precision, the JVM delivers workstation grade graphics performance.
+Alles Zero GC, alles native Heartbeats, alles flat memory.
+
+Was unter der Haube abgeht:
+* 300 Tween Spheres mit FastTween (keine Allokationen, nur reine Achsen Mathe)
+* 50.000 Partikel in flachen Arrays mit Orbit Physik und echtem Z Buffer
+* FastGPU Compute fuer den Durchsatz, orchestriert ueber FastAnimation
+* Per Pixel Float Z Buffer fuer echte 3D Occlusion zwischen Partikeln und Kugeln
+* Tokyo Night Retro Atmosphaere mit Dynamic Light Emitters und Motion Blur
+* Native Sub Millisekunde Heartbeats ueber FastExecution und FastDWM
+
+Java muss nicht langsam sein. Man muss nur aufhoeren, es wie Standard Java zu benutzen.
+
+Uebrigens: Ich habe FastGPU, FastAnimation und FastTween gebaut. Falls du sehen willst, wie weit man die JVM pruegeln kann:
 
 GitHub: https://github.com/andrestubbe/FastAnimation
+FastGPU: https://github.com/andrestubbe/FastGPU
+FastTween: https://github.com/andrestubbe/FastTween
 Full ecosystem: https://github.com/andrestubbe
 
-#Java #Performance #Graphics #CreativeCoding #SoftwareEngineering #FastJava #FastGPU #ZeroGC #GameDev #JNI
+#FastJava #FastGPU #FastAnimation #FastTween #ZeroGC #JNI #CreativeCoding #JavaPerformance #TokyoNight
