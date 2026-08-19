@@ -117,7 +117,8 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 | Case | Java Example | Launcher | Description |
 |---|---|---|---|
 | **Pseudo-3D Particle Realm** | [Demo.java](examples/Demo/src/main/java/fastanimation/Demo.java) | `run-demo.bat` | 3D-to-2D projection with 300 independently tweened objects. |
-| **Mass Particle Timeline (50k)** | [ParticleTimelineDemo.java](examples/Demo/src/main/java/fastanimation/demo/ParticleTimelineDemo.java) | `run-demo-particles.bat` | 50,000 timeline-animated particles with SIMD contiguous buffer updates. |
+| **Spheres + Swarm Particles** | [ParticleTimelineDemo.java](examples/Demo/src/main/java/fastanimation/ParticleTimelineDemo.java) | `run-demo-particles.bat` | 300 FastTween spheres + 50,000 harmonic particles. |
+| **Pure Particle Cloud (50k)** | [PureParticleCloudDemo.java](examples/Demo/src/main/java/fastanimation/PureParticleCloudDemo.java) | `run-demo-cloud.bat` | 50,000 pure white 3D particles radiating from the core. |
 
 ---
 
