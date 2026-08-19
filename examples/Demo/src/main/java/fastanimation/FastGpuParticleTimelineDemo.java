@@ -224,9 +224,13 @@ public class FastGpuParticleTimelineDemo extends Canvas {
             gpuStateBuffer.upload(particleState);
 
             gpuActive = true;
-            System.out.println("✅ FastGPU Compute-Shader Active: Particle swarm math dispatched to GPU hardware!");
+            System.out.println("==================================================================");
+            System.out.println("⚡ FastGPU HARDWARE COMPUTE PIPELINE INITIALIZED (100,000 Particles)");
+            System.out.println("Vulkan Compute Pipeline: READY");
+            System.out.println("==================================================================");
         } catch (Throwable t) {
-            System.out.println("⚠️ FastGPU native backend unavailable (" + t.getMessage() + "). Falling back to zero-allocation parallel host CPU.");
+            System.err.println("❌ FastGPU Hardware Error: " + t.getMessage());
+            System.err.println("Note: FastGPU requires Vulkan SDK / glslc to compile GLSL shaders directly to SPIR-V.");
             gpuActive = false;
         }
     }
