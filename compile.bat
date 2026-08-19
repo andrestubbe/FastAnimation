@@ -24,22 +24,7 @@ if not defined JAVA_HOME (
 
 echo Using JDK: %JAVA_HOME%
 
-:: 2. Setup VS Environment (Blueprint Standard)
-set "VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
-if not exist "%VSWHERE%" (
-    echo NOTE: vswhere.exe not found. Skipping native build.
-) else (
-    for /f "usebackq tokens=*" %%i in (`"%VSWHERE%" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do (
-        set "VS_INSTALL=%%i"
-    )
-    if defined VS_INSTALL (
-        set "VCVARS=!VS_INSTALL!\VC\Auxiliary\Build\vcvars64.bat"
-        echo Found Visual Studio at: !VS_INSTALL!
-        if exist "!VCVARS!" call "!VCVARS!" > nul
-    )
-)
-
-:: 3. Build Java Library (Quiet Mode)
+:: 2. Build Java Library (Quiet Mode)
 echo.
 echo Building Java Library...
 call mvn clean install -DskipTests -q
