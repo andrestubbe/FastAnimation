@@ -1,6 +1,16 @@
 @echo off
-setlocal
-cd /d "%~dp0"
+chcp 65001 >nul
 
-echo [FastAnimation] Compiling and starting ParticleTimelineDemo (50k particles)...
-call mvn clean compile exec:java -Dexec.mainClass="fastanimation.demo.ParticleTimelineDemo" -q
+set MAVEN_OPTS=--enable-native-access=ALL-UNNAMED
+
+echo ⚡ Building Core Library...
+call mvn clean install -DskipTests -q
+if %ERRORLEVEL% NEQ 0 ( echo ❌ Build failed. & pause & exit /b %ERRORLEVEL% )
+
+echo 🚀 Running Particle Timeline Demo (50,000 Particles)...
+cd examples\Demo
+call mvn compile exec:java -Dexec.mainClass=fastanimation.demo.ParticleTimelineDemo -q
+if %ERRORLEVEL% NEQ 0 ( echo ❌ Demo failed. & pause & exit /b %ERRORLEVEL% )
+
+cd ..\..
+pause
