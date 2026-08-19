@@ -331,9 +331,21 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 5. TokyoNight Canvas Clear & Z-Buffer Reset
-                int tokyoNightBg = (26 << 16) | (27 << 8) | 38;
-                Arrays.fill(pixels, tokyoNightBg);
+                // 5. Cinematic Motion Blur Decay (~0.95 retention toward TokyoNight background)
+                int bgR = 26, bgG = 27, bgB = 38;
+                for (int i = 0; i < pixels.length; i++) {
+                    int p = pixels[i];
+                    int pr = (p >> 16) & 0xFF;
+                    int pg = (p >> 8) & 0xFF;
+                    int pb = p & 0xFF;
+
+                    // 0.95 retention factor: pr = bgR + (pr - bgR) * 243 >> 8
+                    pr = bgR + (((pr - bgR) * 243) >> 8);
+                    pg = bgG + (((pg - bgG) * 243) >> 8);
+                    pb = bgB + (((pb - bgB) * 243) >> 8);
+
+                    pixels[i] = (pr << 16) | (pg << 8) | pb;
+                }
                 Arrays.fill(zBuffer, Float.MAX_VALUE);
 
                 // 6. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer
