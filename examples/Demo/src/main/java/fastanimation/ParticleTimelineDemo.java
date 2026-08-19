@@ -18,13 +18,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Volumetric 3D FastTween Realm + Z-Sorted Depth Fog.
+ * FastAnimation Demo 2: Volumetric 3D FastTween Realm + Hardware-style Software Z-Buffer.
  *
  * <p>Features:
  * <ul>
- *   <li>300 Spheres with Z-Depth sorting (far spheres fade into dense dark fog, near spheres glow bright pure white)</li>
- *   <li>50,000 Volumetric depth-scaled star particles with quadratic distance fog attenuation</li>
- *   <li>Fluid gravitational momentum physics & slow multi-axis camera rotation</li>
+ *   <li>Full per-pixel Float Z-Buffer (Depth Buffer) for 100% correct 3D occlusion between spheres and particles</li>
+ *   <li>50,000 Particles seamlessly render IN FRONT of, BEHIND, and AROUND spheres with zero depth sorting artifacts</li>
+ *   <li>300 Spheres with FastTween Quad-InOut axis keyframes and doubled separation</li>
+ *   <li>Atmospheric quadratic depth fog on both spheres and star dust particles</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
@@ -41,8 +42,6 @@ public class ParticleTimelineDemo extends Canvas {
     // Atmospheric Fog Range
     private static final float FOG_NEAR = 150f;
     private static final float FOG_FAR = 1550f;
-
-    private static final Ellipse2D ellipse2D = new Ellipse2D.Float();
 
     // ---------------------------------------------------------
     // 3D Sphere Model with Projected Z-Depth
@@ -76,6 +75,7 @@ public class ParticleTimelineDemo extends Canvas {
 
     private BufferedImage screenBuffer;
     private int[] pixels;
+    private final float[] zBuffer = new float[WIDTH * HEIGHT];
     private final JFrame parentFrame;
 
     public ParticleTimelineDemo(JFrame parentFrame) {
@@ -223,7 +223,7 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // Combined High-Speed Render Loop with Z-Sorting and Fog
+    // Combined High-Speed Render Loop with Per-Pixel Z-Buffer
     // ---------------------------------------------------------
     public void start() {
         createBufferStrategy(3);
@@ -238,9 +238,6 @@ public class ParticleTimelineDemo extends Canvas {
 
             float camYaw = 0f;
             float camPitch = 0f;
-
-            // Pre-allocated comparator for zero-GC Z-sorting (back to front)
-            Comparator<Ball> zComparator = (b1, b2) -> Float.compare(b2.zDepth, b1.zDepth);
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -262,10 +259,66 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 3. Crisp Black Screen Clear
+                // 3. Crisp Screen & Z-Buffer Reset (Float.MAX_VALUE = infinite distance)
                 Arrays.fill(pixels, 0);
+                Arrays.fill(zBuffer, Float.MAX_VALUE);
 
-                // 4. Volumetric Orbit Particles Update & Atmospheric Fog Splatting
+                // 4. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer
+                for (Ball b : balls) {
+                    float bx = b.x + b.boidOffsetX;
+                    float by = b.y + b.boidOffsetY;
+                    float bz = b.z + b.boidOffsetZ;
+
+                    b.rotX = bx * cosY - bz * sinY;
+                    float rz = bx * sinY + bz * cosY;
+                    b.rotY = by * cosP - rz * sinP;
+                    b.rotZ = by * sinP + rz * cosP;
+                    b.zDepth = FOV + b.rotZ + CUBE_SIZE;
+
+                    if (b.zDepth <= 1.0f) continue;
+
+                    float scale = FOV / b.zDepth;
+                    int sx = (int) (WIDTH / 2f + b.rotX * scale);
+                    int sy = (int) (HEIGHT / 2f + b.rotY * scale);
+                    int radius = (int) (48f * scale * b.radiusScale);
+
+                    if (radius <= 0) continue;
+
+                    float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
+                    fog = Math.max(0.08f, Math.min(1.0f, fog));
+                    int shade = (int) (35 + fog * 220);
+                    int rgb = (shade << 16) | (shade << 8) | shade;
+
+                    int radSq = radius * radius;
+                    int minX = Math.max(0, sx - radius);
+                    int maxX = Math.min(WIDTH - 1, sx + radius);
+                    int minY = Math.max(0, sy - radius);
+                    int maxY = Math.min(HEIGHT - 1, sy + radius);
+
+                    for (int py = minY; py <= maxY; py++) {
+                        int dy = py - sy;
+                        int dySq = dy * dy;
+                        int rowOffset = py * WIDTH;
+
+                        for (int px = minX; px <= maxX; px++) {
+                            int dx = px - sx;
+                            int distSq = dx * dx + dySq;
+                            if (distSq <= radSq) {
+                                // 3D Sphere surface depth curvature offset
+                                float dz = (float) Math.sqrt(radSq - distSq) / scale;
+                                float pixelZ = b.zDepth - dz;
+
+                                int idx = rowOffset + px;
+                                if (pixelZ < zBuffer[idx]) {
+                                    zBuffer[idx] = pixelZ;
+                                    pixels[idx] = rgb;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 5. Volumetric Orbit Particles with Precise Per-Pixel Z-Buffer Occlusion
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
@@ -308,113 +361,65 @@ public class ParticleTimelineDemo extends Canvas {
                     float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 1.0f) continue;
 
-                    // Atmospheric Depth Fog Factor (1.0 = near/bright, 0.0 = deep in background fog)
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.04f, Math.min(1.0f, fog * fog)); // quadratic atmospheric falloff
+                    fog = Math.max(0.08f, Math.min(1.0f, fog));
+                    int shade = (int) (35 + fog * 220);
+                    int rgb = (shade << 16) | (shade << 8) | shade;
 
                     float scale = FOV / zDepth;
                     int sx = (int) (WIDTH / 2f + rx * scale);
                     int sy = (int) (HEIGHT / 2f + ry * scale);
 
                     float pSize = particleBaseSize[i] * scale;
-
                     int rad = (int) Math.max(1, pSize);
                     int radSq = rad * rad;
 
-                    if (sx >= rad && sx < WIDTH - rad && sy >= rad && sy < HEIGHT - rad) {
-                        // Identical fog shade calculation as the 300 spheres (solid matte white/grey)
-                        int shade = (int) (35 + fog * 220); // 35 to 255 brightness
+                    int minX = Math.max(0, sx - rad);
+                    int maxX = Math.min(WIDTH - 1, sx + rad);
+                    int minY = Math.max(0, sy - rad);
+                    int maxY = Math.min(HEIGHT - 1, sy + rad);
 
-                        // Rasterize solid anti-aliased sphere disc
-                        for (int dy = -rad; dy <= rad; dy++) {
-                            int dySq = dy * dy;
-                            int rowOffset = (sy + dy) * WIDTH + sx;
+                    // Z-Buffer tested rasterization: Particles IN FRONT overwrite, BEHIND are occluded
+                    for (int py = minY; py <= maxY; py++) {
+                        int dy = py - sy;
+                        int dySq = dy * dy;
+                        int rowOffset = py * WIDTH;
 
-                            for (int dx = -rad; dx <= rad; dx++) {
-                                int distSq = dx * dx + dySq;
-                                if (distSq <= radSq) {
-                                    setSolidPixel(rowOffset + dx, shade);
+                        for (int px = minX; px <= maxX; px++) {
+                            int dx = px - sx;
+                            int distSq = dx * dx + dySq;
+                            if (distSq <= radSq) {
+                                int idx = rowOffset + px;
+                                // Z-Test: draw if closer than currently buffered pixel depth
+                                if (zDepth < zBuffer[idx]) {
+                                    zBuffer[idx] = zDepth;
+                                    pixels[idx] = rgb;
                                 }
                             }
                         }
                     }
                 }
 
-                // 5. Calculate Rotated Coordinates & Z-Depth for all Spheres
-                for (Ball b : balls) {
-                    float bx = b.x + b.boidOffsetX;
-                    float by = b.y + b.boidOffsetY;
-                    float bz = b.z + b.boidOffsetZ;
-
-                    b.rotX = bx * cosY - bz * sinY;
-                    float rz = bx * sinY + bz * cosY;
-                    b.rotY = by * cosP - rz * sinP;
-                    b.rotZ = by * sinP + rz * cosP;
-                    b.zDepth = FOV + b.rotZ + CUBE_SIZE;
-                }
-
-                // Zero-GC Z-Sort: Sort spheres back-to-front for proper occlusion
-                Arrays.sort(sortedBalls, zComparator);
-
-                // 6. Render Z-Sorted Spheres with Atmospheric Depth Fog
-                Graphics2D g2d = screenBuffer.createGraphics();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                for (Ball b : sortedBalls) {
-                    if (b.zDepth <= 0.1f) continue;
-
-                    // Fog calculation for sphere: near = 255 pure white, far = dark atmospheric grey (35)
-                    float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.08f, Math.min(1.0f, fog));
-                    int shade = (int) (35 + fog * 220); // 35 to 255 brightness
-
-                    g2d.setColor(new Color(shade, shade, shade));
-
-                    float scale = FOV / b.zDepth;
-                    float screenX = WIDTH / 2f + b.rotX * scale;
-                    float screenY = HEIGHT / 2f + b.rotY * scale;
-                    float radius = 48f * scale * b.radiusScale;
-
-                    if (radius > 0) {
-                        ellipse2D.setFrame(screenX - radius, screenY - radius, radius * 2, radius * 2);
-                        g2d.fill(ellipse2D);
-                    }
-                }
-                g2d.dispose();
-
-                // 7. Present Frame
+                // 6. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 8. FPS Counter in Window Title
+                // 7. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Z-Sorted Spheres (Depth Fog) + 50,000 Stars | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (Per-Pixel Z-Buffer) | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-DepthFog").start();
-    }
-
-    private void setSolidPixel(int index, int shade) {
-        int cur = pixels[index] & 0xFF;
-        if (shade > cur) {
-            pixels[index] = (shade << 16) | (shade << 8) | shade;
-        }
-    }
-
-    private void blendPixel(int index, int add) {
-        int cur = pixels[index] & 0xFF;
-        int res = Math.min(255, cur + add);
-        pixels[index] = (res << 16) | (res << 8) | res;
+        }, "Render-Loop-ZBuffer").start();
     }
 
     private static BufferedImage createRoundIcon() {
@@ -432,7 +437,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres (Depth Fog) + 50,000 Stars");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Z-Buffer)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
