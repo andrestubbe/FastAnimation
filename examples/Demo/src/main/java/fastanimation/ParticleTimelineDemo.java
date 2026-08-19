@@ -38,10 +38,10 @@ public class ParticleTimelineDemo extends Canvas {
     private static final float FOV = 450f;
 
     // BOIDS Physics Parameters
-    private static final float MAX_SPEED = 5.5f;
-    private static final float MAX_FORCE = 0.18f;
-    private static final float DESIRED_SEPARATION = 45.0f;
-    private static final float NEIGHBOR_DIST = 130.0f;
+    private static final float MAX_SPEED = 5.0f;
+    private static final float MAX_FORCE = 0.28f;
+    private static final float DESIRED_SEPARATION = 110.0f; // 2.5x larger separation distance
+    private static final float NEIGHBOR_DIST = 180.0f;
 
     private static final Ellipse2D ellipse2D = new Ellipse2D.Float();
 
@@ -184,9 +184,9 @@ public class ParticleTimelineDemo extends Canvas {
             float ax = 0, ay = 0, az = 0;
 
             if (sepCount > 0) {
-                ax += sepX * 1.5f;
-                ay += sepY * 1.5f;
-                az += sepZ * 1.5f;
+                ax += sepX * 2.8f;
+                ay += sepY * 2.8f;
+                az += sepZ * 2.8f;
             }
 
             if (count > 0) {
@@ -198,13 +198,13 @@ public class ParticleTimelineDemo extends Canvas {
                 ay += (aliY - b.vy) * 0.05f;
                 az += (aliZ - b.vz) * 0.05f;
 
-                // Cohesion
+                // Cohesion (Low to avoid tight blob clumping)
                 cohX /= count;
                 cohY /= count;
                 cohZ /= count;
-                ax += (cohX - b.x) * 0.003f;
-                ay += (cohY - b.y) * 0.003f;
-                az += (cohZ - b.z) * 0.003f;
+                ax += (cohX - b.x) * 0.0008f;
+                ay += (cohY - b.y) * 0.0008f;
+                az += (cohZ - b.z) * 0.0008f;
             }
 
             // Boundary containment box
