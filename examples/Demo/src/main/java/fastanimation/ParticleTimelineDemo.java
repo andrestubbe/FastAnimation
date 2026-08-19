@@ -199,13 +199,8 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 2. Phosphor Trail Decay with Soft Contrast Retention
-                for (int i = 0; i < pixels.length; i++) {
-                    int p = pixels[i];
-                    int v = (p & 0xFF);
-                    v = (v * 198) >> 8; // gentle optical fade
-                    pixels[i] = (v << 16) | (v << 8) | v;
-                }
+                // 2. Crisp Black Screen Clear (Zero Motion Blur)
+                java.util.Arrays.fill(pixels, 0);
 
                 // 3. Swarm Physics & Bloom Splatting for 50,000 Particles
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
