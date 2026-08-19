@@ -172,7 +172,7 @@ public class ParticleTimelineDemo extends Canvas {
     // Gentle Local Repulsion Offset (Keeps spheres separated smoothly)
     // ---------------------------------------------------------
     private void updateGentleSeparation() {
-        float sepDist = 90.0f;
+        float sepDist = 180.0f; // Doubled separation distance
         for (int i = 0; i < BALL_COUNT; i++) {
             Ball b = balls.get(i);
             float sx = 0, sy = 0, sz = 0;
@@ -189,15 +189,15 @@ public class ParticleTimelineDemo extends Canvas {
                 if (distSq > 0 && distSq < sepDist * sepDist) {
                     float d = (float) Math.sqrt(distSq);
                     float force = (sepDist - d) / sepDist;
-                    sx += (dx / d) * force * 1.2f;
-                    sy += (dy / d) * force * 1.2f;
-                    sz += (dz / d) * force * 1.2f;
+                    sx += (dx / d) * force * 2.4f; // Doubled repulsion force
+                    sy += (dy / d) * force * 2.4f;
+                    sz += (dz / d) * force * 2.4f;
                 }
             }
 
-            b.boidOffsetX += (sx - b.boidOffsetX) * 0.05f;
-            b.boidOffsetY += (sy - b.boidOffsetY) * 0.05f;
-            b.boidOffsetZ += (sz - b.boidOffsetZ) * 0.05f;
+            b.boidOffsetX += (sx - b.boidOffsetX) * 0.08f;
+            b.boidOffsetY += (sy - b.boidOffsetY) * 0.08f;
+            b.boidOffsetZ += (sz - b.boidOffsetZ) * 0.08f;
         }
     }
 
