@@ -260,14 +260,14 @@ public class ParticleTimelineDemo extends Canvas {
         float g = ambG * 0.35f + COLOR_MAGENTA[1] * mWeight * 1.4f + COLOR_CYAN[1] * cWeight * 1.2f + COLOR_AMBER[1] * aWeight * 1.3f;
         float b = ambB * 0.35f + COLOR_MAGENTA[2] * mWeight * 1.4f + COLOR_CYAN[2] * cWeight * 1.2f + COLOR_AMBER[2] * aWeight * 1.3f;
 
-        // Apply Atmospheric Distance Fog
-        int cr = (int) (Math.min(1.0f, r) * fog * 255);
-        int cg = (int) (Math.min(1.0f, g) * fog * 255);
-        int cb = (int) (Math.min(1.0f, b) * fog * 255);
+        // Blend into TokyoNight background color (#1a1b26 -> 26, 27, 38) as distance fog increases
+        int cr = (int) (26 + (Math.min(1.0f, r) * 255 - 26) * fog);
+        int cg = (int) (27 + (Math.min(1.0f, g) * 255 - 27) * fog);
+        int cb = (int) (38 + (Math.min(1.0f, b) * 255 - 38) * fog);
 
-        cr = Math.min(255, Math.max(12, cr));
-        cg = Math.min(255, Math.max(12, cg));
-        cb = Math.min(255, Math.max(12, cb));
+        cr = Math.min(255, Math.max(26, cr));
+        cg = Math.min(255, Math.max(27, cg));
+        cb = Math.min(255, Math.max(38, cb));
 
         return (cr << 16) | (cg << 8) | cb;
     }
@@ -331,8 +331,9 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 5. Crisp Screen & Z-Buffer Reset
-                Arrays.fill(pixels, 0);
+                // 5. TokyoNight Canvas Background Clear (#1a1b26) & Z-Buffer Reset
+                int tokyoNightBg = (26 << 16) | (27 << 8) | 38; // #1a1b26
+                Arrays.fill(pixels, tokyoNightBg);
                 Arrays.fill(zBuffer, Float.MAX_VALUE);
 
                 // 6. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer with Retro Lighting
@@ -495,8 +496,11 @@ public class ParticleTimelineDemo extends Canvas {
         BufferedImage icon = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = icon.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Color.WHITE);
-        g.fillOval(4, 4, 56, 56);
+        // TokyoNight Electric Cyan with Magenta glow border
+        g.setColor(new Color(247, 118, 142)); // TokyoNight Pink/Magenta
+        g.fillOval(2, 2, 60, 60);
+        g.setColor(new Color(122, 162, 247)); // TokyoNight Electric Cyan/Blue
+        g.fillOval(6, 6, 52, 52);
         g.dispose();
         return icon;
     }
@@ -506,7 +510,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Retro Synthwave)");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Tokyo Night Synthwave)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
@@ -521,8 +525,10 @@ public class ParticleTimelineDemo extends Canvas {
             try {
                 long hwnd = FastTheme.getWindowHandle(frame);
                 FastTheme.setTitleBarDarkMode(hwnd, true);
-                FastTheme.setTitleBarColor(hwnd, 0, 0, 0);
-                FastTheme.setTitleBarTextColor(hwnd, 255, 255, 255);
+                // TokyoNight Dark Background (#1a1b26 -> R:26, G:27, B:38)
+                FastTheme.setTitleBarColor(hwnd, 26, 27, 38);
+                // TokyoNight Foreground Text (#a9b1d6 -> R:169, G:177, B:214)
+                FastTheme.setTitleBarTextColor(hwnd, 169, 177, 214);
             } catch (Exception ignored) {}
 
             frame.setVisible(true);
