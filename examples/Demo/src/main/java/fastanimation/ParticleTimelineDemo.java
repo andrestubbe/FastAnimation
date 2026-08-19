@@ -268,6 +268,8 @@ public class ParticleTimelineDemo extends Canvas {
         new Thread(() -> {
             long lastFpsTime = System.nanoTime();
             int frames = 0;
+            long frameTimeTarget = 1_000_000_000L / 60;
+            long lastRenderTime = System.nanoTime();
             Random r = new Random();
 
             float camYaw = 0f;
@@ -276,6 +278,12 @@ public class ParticleTimelineDemo extends Canvas {
             float ambientPhase = 0f;
 
             while (true) {
+                long nowLoop = System.nanoTime();
+                if (nowLoop - lastRenderTime < frameTimeTarget) {
+                    Thread.yield();
+                    continue;
+                }
+                lastRenderTime = nowLoop;
                 lightPhase += 0.018f;
                 ambientPhase += 0.005f;
 
