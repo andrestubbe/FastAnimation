@@ -45,8 +45,6 @@ public class Example {
 
 ---
 
----
-
 ## Table of Contents
 
 - [Why FastAnimation?](#why-fastanimation)
