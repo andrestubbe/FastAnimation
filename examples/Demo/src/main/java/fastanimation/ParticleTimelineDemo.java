@@ -526,10 +526,8 @@ public class ParticleTimelineDemo extends Canvas {
         BufferedImage icon = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = icon.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(new Color(247, 118, 142));
-        g.fillOval(2, 2, 60, 60);
-        g.setColor(new Color(122, 162, 247));
-        g.fillOval(6, 6, 52, 52);
+        g.setColor(new Color(122, 162, 247)); // Pure TokyoNight Electric Blue fill
+        g.fillOval(4, 4, 56, 56);
         g.dispose();
         return icon;
     }
