@@ -1,4 +1,4 @@
-package fastanimation.demo;
+package fastanimation;
 
 import fastexecution.FastExecution;
 
