@@ -101,37 +101,55 @@ public class ParticleTimelineDemo extends Canvas {
 
     private void initTextMask() {
         textAlphaMask = new byte[WIDTH * HEIGHT];
-        BufferedImage textImg = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = textImg.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        try {
+            java.io.InputStream is = getClass().getResourceAsStream("/retro_synth_clean.jpg");
+            if (is != null) {
+                BufferedImage raw = javax.imageio.ImageIO.read(is);
+                int rw = raw.getWidth();
+                int rh = raw.getHeight();
 
-        Font font = new Font("Impact", Font.BOLD, 108);
-        g.setFont(font);
-        FontMetrics fm = g.getFontMetrics();
+                // Crop "RETRO" (left half) and "SYNTH" (right half) from the 1-line original image
+                // Letters are vertically roughly in center (rh * 0.40 to rh * 0.60)
+                int cropY = (int) (rh * 0.38);
+                int cropH = (int) (rh * 0.24);
+                int cropRetroX = (int) (rw * 0.045);
+                int cropRetroW = (int) (rw * 0.435);
+                int cropSynthX = (int) (rw * 0.515);
+                int cropSynthW = (int) (rw * 0.440);
 
-        String line1 = "RETRO";
-        String line2 = "SYNTH";
+                BufferedImage imgRetro = raw.getSubimage(cropRetroX, cropY, cropRetroW, cropH);
+                BufferedImage imgSynth = raw.getSubimage(cropSynthX, cropY, cropSynthW, cropH);
 
-        int w1 = fm.stringWidth(line1);
-        int w2 = fm.stringWidth(line2);
+                // Target width: half-size (compact 240px wide)
+                int targetW = 240;
+                int targetH = (int) (cropH * ((float) targetW / cropRetroW));
 
-        int x1 = (WIDTH - w1) / 2;
-        int x2 = (WIDTH - w2) / 2;
+                BufferedImage canvas = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = canvas.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        int centerY = HEIGHT / 2;
-        int y1 = centerY - 15;
-        int y2 = centerY + fm.getAscent() - 5;
+                int cx = WIDTH / 2;
+                int cy = HEIGHT / 2;
 
-        g.setColor(Color.WHITE);
-        g.drawString(line1, x1, y1);
-        g.drawString(line2, x2, y2);
-        g.dispose();
+                // Line 1: RETRO (Top center)
+                g.drawImage(imgRetro, cx - targetW / 2, cy - targetH - 6, targetW, targetH, null);
+                // Line 2: SYNTH (Bottom center)
+                g.drawImage(imgSynth, cx - targetW / 2, cy + 6, targetW, targetH, null);
+                g.dispose();
 
-        int[] textPixels = ((DataBufferInt) textImg.getRaster().getDataBuffer()).getData();
-        for (int i = 0; i < textPixels.length; i++) {
-            int alpha = (textPixels[i] >>> 24) & 0xFF;
-            textAlphaMask[i] = (byte) alpha;
+                // Extract brightness into alpha mask
+                int[] maskPixels = ((DataBufferInt) canvas.getRaster().getDataBuffer()).getData();
+                for (int i = 0; i < maskPixels.length; i++) {
+                    int p = maskPixels[i];
+                    int r = (p >> 16) & 0xFF;
+                    int gr = (p >> 8) & 0xFF;
+                    int b = p & 0xFF;
+                    int lum = Math.max(r, Math.max(gr, b));
+                    textAlphaMask[i] = (byte) (lum > 40 ? lum : 0);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
