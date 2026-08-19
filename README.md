@@ -112,6 +112,15 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 
 ---
 
+## Technical Examples & Hero Demos
+
+| Case | Java Example | Launcher | Description |
+|---|---|---|---|
+| **Pseudo-3D Particle Realm** | [Demo.java](examples/Demo/src/main/java/fastanimation/Demo.java) | `run-demo.bat` | 3D-to-2D projection with 300 independently tweened objects. |
+| **Mass Particle Timeline (50k)** | [ParticleTimelineDemo.java](examples/Demo/src/main/java/fastanimation/demo/ParticleTimelineDemo.java) | `run-demo-particles.bat` | 50,000 timeline-animated particles with SIMD contiguous buffer updates. |
+
+---
+
 ## Installation
 
 ### Option 1: Maven (Recommended)
