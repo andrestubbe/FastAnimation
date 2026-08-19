@@ -17,13 +17,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Volumetric 3D FastTween Realm + 3 Dynamic RGB Color Emitters + Z-Buffer.
+ * FastAnimation Demo 2: Synthwave / Cyberpunk Retro Realm + Cycling Ambient Fog & Z-Buffer.
  *
  * <p>Features:
  * <ul>
- *   <li>3 Dynamic 3D Color Emitters (Red, Green, Blue) orbiting the cube perimeter and lighting spheres/particles based on 3D distance</li>
- *   <li>Full per-pixel Float Z-Buffer (Depth Buffer) for 100% correct 3D occlusion</li>
- *   <li>50,000 Particles & 300 Spheres colored dynamically by RGB light fields + depth fog</li>
+ *   <li>Retro Neon Palette: Neon Magenta / Pink, Electric Cyan / Teal, Sunset Amber / Orange</li>
+ *   <li>Dynamic Cycling Ambient Color Field (slowly morphs the base atmosphere through neon hues, eliminating flat white)</li>
+ *   <li>3 Dynamic 3D Emitters casting localized neon specular highlights</li>
+ *   <li>Full per-pixel Float Z-Buffer for 100% correct 3D occlusion between spheres and particles</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
@@ -40,6 +41,14 @@ public class ParticleTimelineDemo extends Canvas {
     // Atmospheric Fog Range
     private static final float FOG_NEAR = 150f;
     private static final float FOG_FAR = 1550f;
+
+    // Retro Neon Palette Constants (RGB Float Weights)
+    // Emitter 1: Hot Neon Magenta (255, 20, 147)
+    private static final float[] COLOR_MAGENTA = { 1.0f, 0.08f, 0.58f };
+    // Emitter 2: Electric Cyan (0, 240, 255)
+    private static final float[] COLOR_CYAN = { 0.0f, 0.94f, 1.0f };
+    // Emitter 3: Sunset Amber (255, 140, 0)
+    private static final float[] COLOR_AMBER = { 1.0f, 0.55f, 0.0f };
 
     // ---------------------------------------------------------
     // 3D Sphere Model with Projected Z-Depth
@@ -219,43 +228,52 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // Color Emitter Light Field Calculator (RGB based on 3D distance)
+    // Retro Synthwave Color Shader (Cycling Ambient + 3 Neon Point Lights)
     // ---------------------------------------------------------
-    private static int computeRgbColor(float px, float py, float pz, float fog,
-                                       float rEx, float rEy, float rEz,
-                                       float gEx, float gEy, float gEz,
-                                       float bEx, float bEy, float bEz) {
-        float lightRadius = 750f;
+    private static int computeRetroColor(float px, float py, float pz, float fog,
+                                         float ambR, float ambG, float ambB,
+                                         float mEx, float mEy, float mEz,
+                                         float cEx, float cEy, float cEz,
+                                         float aEx, float aEy, float aEz) {
+        float lightRadius = 700f;
 
-        // Red emitter distance
-        float rDx = px - rEx, rDy = py - rEy, rDz = pz - rEz;
-        float rDist = (float) Math.sqrt(rDx * rDx + rDy * rDy + rDz * rDz);
-        float rWeight = Math.max(0.15f, 1.0f - (rDist / lightRadius));
+        // 1. Magenta Emitter Light Influence
+        float mDx = px - mEx, mDy = py - mEy, mDz = pz - mEz;
+        float mDist = (float) Math.sqrt(mDx * mDx + mDy * mDy + mDz * mDz);
+        float mWeight = Math.max(0f, 1.0f - (mDist / lightRadius));
+        mWeight = mWeight * mWeight; // Quadratic light decay
 
-        // Green emitter distance
-        float gDx = px - gEx, gDy = py - gEy, gDz = pz - gEz;
-        float gDist = (float) Math.sqrt(gDx * gDx + gDy * gDy + gDz * gDz);
-        float gWeight = Math.max(0.15f, 1.0f - (gDist / lightRadius));
+        // 2. Cyan Emitter Light Influence
+        float cDx = px - cEx, cDy = py - cEy, cDz = pz - cEz;
+        float cDist = (float) Math.sqrt(cDx * cDx + cDy * cDy + cDz * cDz);
+        float cWeight = Math.max(0f, 1.0f - (cDist / lightRadius));
+        cWeight = cWeight * cWeight;
 
-        // Blue emitter distance
-        float bDx = px - bEx, bDy = py - bEy, bDz = pz - bEz;
-        float bDist = (float) Math.sqrt(bDx * bDx + bDy * bDy + bDz * bDz);
-        float bWeight = Math.max(0.15f, 1.0f - (bDist / lightRadius));
+        // 3. Amber Emitter Light Influence
+        float aDx = px - aEx, aDy = py - aEy, aDz = pz - aEz;
+        float aDist = (float) Math.sqrt(aDx * aDx + aDy * aDy + aDz * aDz);
+        float aWeight = Math.max(0f, 1.0f - (aDist / lightRadius));
+        aWeight = aWeight * aWeight;
 
-        // Combine with depth fog
-        int cr = (int) (Math.min(1.0f, rWeight * 1.3f) * fog * 255);
-        int cg = (int) (Math.min(1.0f, gWeight * 1.3f) * fog * 255);
-        int cb = (int) (Math.min(1.0f, bWeight * 1.3f) * fog * 255);
+        // Accumulate Retro Colors onto dynamic Ambient Base
+        float r = ambR * 0.35f + COLOR_MAGENTA[0] * mWeight * 1.4f + COLOR_CYAN[0] * cWeight * 1.2f + COLOR_AMBER[0] * aWeight * 1.3f;
+        float g = ambG * 0.35f + COLOR_MAGENTA[1] * mWeight * 1.4f + COLOR_CYAN[1] * cWeight * 1.2f + COLOR_AMBER[1] * aWeight * 1.3f;
+        float b = ambB * 0.35f + COLOR_MAGENTA[2] * mWeight * 1.4f + COLOR_CYAN[2] * cWeight * 1.2f + COLOR_AMBER[2] * aWeight * 1.3f;
 
-        cr = Math.min(255, Math.max(25, cr));
-        cg = Math.min(255, Math.max(25, cg));
-        cb = Math.min(255, Math.max(25, cb));
+        // Apply Atmospheric Distance Fog
+        int cr = (int) (Math.min(1.0f, r) * fog * 255);
+        int cg = (int) (Math.min(1.0f, g) * fog * 255);
+        int cb = (int) (Math.min(1.0f, b) * fog * 255);
+
+        cr = Math.min(255, Math.max(12, cr));
+        cg = Math.min(255, Math.max(12, cg));
+        cb = Math.min(255, Math.max(12, cb));
 
         return (cr << 16) | (cg << 8) | cb;
     }
 
     // ---------------------------------------------------------
-    // Combined High-Speed Render Loop with RGB Light Emitters & Z-Buffer
+    // Combined High-Speed Render Loop with Retro Palette & Z-Buffer
     // ---------------------------------------------------------
     public void start() {
         createBufferStrategy(3);
@@ -271,6 +289,7 @@ public class ParticleTimelineDemo extends Canvas {
             float camYaw = 0f;
             float camPitch = 0f;
             float lightPhase = 0f;
+            float ambientPhase = 0f;
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -280,24 +299,30 @@ public class ParticleTimelineDemo extends Canvas {
                 }
                 lastRenderTime = nowLoop;
                 lightPhase += 0.018f;
+                ambientPhase += 0.005f; // Slow cycling ambient hue
 
                 // 1. Gentle Sphere Separation
                 updateGentleSeparation();
 
-                // 2. 3 Dynamic RGB Light Emitter Positions orbiting in 3D
-                float rEx = (float) Math.cos(lightPhase) * 550f;
-                float rEy = (float) Math.sin(lightPhase * 0.7f) * 400f;
-                float rEz = (float) Math.sin(lightPhase) * 550f;
+                // 2. Compute Cycling Ambient Color (morphing between deep neon purple, cyan-blue, and warm magenta)
+                float ambR = (float) (0.5f + 0.5f * Math.sin(ambientPhase));
+                float ambG = (float) (0.3f + 0.3f * Math.sin(ambientPhase + 2.094f));
+                float ambB = (float) (0.6f + 0.4f * Math.sin(ambientPhase + 4.188f));
 
-                float gEx = (float) Math.cos(lightPhase + 2.094f) * 550f;
-                float gEy = (float) Math.sin((lightPhase + 2.094f) * 0.7f) * 400f;
-                float gEz = (float) Math.sin(lightPhase + 2.094f) * 550f;
+                // 3. 3 Dynamic Retro Emitter Positions (Magenta, Cyan, Amber)
+                float mEx = (float) Math.cos(lightPhase) * 560f;
+                float mEy = (float) Math.sin(lightPhase * 0.7f) * 380f;
+                float mEz = (float) Math.sin(lightPhase) * 560f;
 
-                float bEx = (float) Math.cos(lightPhase + 4.188f) * 550f;
-                float bEy = (float) Math.sin((lightPhase + 4.188f) * 0.7f) * 400f;
-                float bEz = (float) Math.sin(lightPhase + 4.188f) * 550f;
+                float cEx = (float) Math.cos(lightPhase + 2.094f) * 560f;
+                float cEy = (float) Math.sin((lightPhase + 2.094f) * 0.7f) * 380f;
+                float cEz = (float) Math.sin(lightPhase + 2.094f) * 560f;
 
-                // 3. Slow, graceful 3D Camera Orbit
+                float aEx = (float) Math.cos(lightPhase + 4.188f) * 560f;
+                float aEy = (float) Math.sin((lightPhase + 4.188f) * 0.7f) * 380f;
+                float aEz = (float) Math.sin(lightPhase + 4.188f) * 560f;
+
+                // 4. Slow, graceful 3D Camera Orbit
                 camYaw += 0.002f;
                 camPitch = (float) Math.sin(camYaw * 0.5f) * 0.2f;
 
@@ -306,11 +331,11 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 4. Crisp Screen & Z-Buffer Reset
+                // 5. Crisp Screen & Z-Buffer Reset
                 Arrays.fill(pixels, 0);
                 Arrays.fill(zBuffer, Float.MAX_VALUE);
 
-                // 5. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer with Dynamic RGB Lighting
+                // 6. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer with Retro Lighting
                 for (Ball b : balls) {
                     float bx = b.x + b.boidOffsetX;
                     float by = b.y + b.boidOffsetY;
@@ -334,7 +359,7 @@ public class ParticleTimelineDemo extends Canvas {
                     float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.08f, Math.min(1.0f, fog));
 
-                    int rgb = computeRgbColor(bx, by, bz, fog, rEx, rEy, rEz, gEx, gEy, gEz, bEx, bEy, bEz);
+                    int rgb = computeRetroColor(bx, by, bz, fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
                     int radSq = radius * radius;
                     int minX = Math.max(0, sx - radius);
@@ -364,7 +389,7 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 6. Volumetric Orbit Particles with Dynamic RGB Lighting & Z-Buffer Occlusion
+                // 7. Volumetric Orbit Particles with Retro Lighting & Z-Buffer Occlusion
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
@@ -410,7 +435,7 @@ public class ParticleTimelineDemo extends Canvas {
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.08f, Math.min(1.0f, fog));
 
-                    int rgb = computeRgbColor(posX[i], posY[i], posZ[i], fog, rEx, rEy, rEz, gEx, gEy, gEz, bEx, bEy, bEz);
+                    int rgb = computeRetroColor(posX[i], posY[i], posZ[i], fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
                     float scale = FOV / zDepth;
                     int sx = (int) (WIDTH / 2f + rx * scale);
@@ -444,26 +469,26 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 7. Present Frame
+                // 8. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 8. FPS Counter in Window Title
+                // 9. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (3x RGB Emitters + Z-Buffer) | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (Retro Synthwave + Cycling Ambient) | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-RGB-Emitters").start();
+        }, "Render-Loop-Retro").start();
     }
 
     private static BufferedImage createRoundIcon() {
@@ -481,7 +506,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (RGB Emitters)");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Retro Synthwave)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
