@@ -12,18 +12,19 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Volumetric 3D FastTween Realm + 50,000 Multi-Scale Star Dust Particles.
+ * FastAnimation Demo 2: Volumetric 3D FastTween Realm + Z-Sorted Depth Fog.
  *
  * <p>Features:
  * <ul>
- *   <li>300 Independent spheres moving via FastTween Quad-InOut axis keyframes with doubled separation</li>
- *   <li>50,000 Volumetric depth-scaled star particles (up to 5x5 soft luminous disks + core)</li>
- *   <li>Fluid gravitational follow physics with natural momentum drag & non-linear orbit spirals</li>
- *   <li>Gentle 3D orbital camera rotation (Yaw + Pitch matrix)</li>
+ *   <li>300 Spheres with Z-Depth sorting (far spheres fade into dense dark fog, near spheres glow bright pure white)</li>
+ *   <li>50,000 Volumetric depth-scaled star particles with quadratic distance fog attenuation</li>
+ *   <li>Fluid gravitational momentum physics & slow multi-axis camera rotation</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
@@ -37,18 +38,25 @@ public class ParticleTimelineDemo extends Canvas {
     private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
 
+    // Atmospheric Fog Range
+    private static final float FOG_NEAR = 150f;
+    private static final float FOG_FAR = 1550f;
+
     private static final Ellipse2D ellipse2D = new Ellipse2D.Float();
 
     // ---------------------------------------------------------
-    // 3D Sphere Model
+    // 3D Sphere Model with Projected Z-Depth
     // ---------------------------------------------------------
     private static class Ball {
         float x, y, z;
         float boidOffsetX, boidOffsetY, boidOffsetZ;
         float radiusScale = 1.0f;
+        float rotX, rotY, rotZ;
+        float zDepth;
     }
 
     private final List<Ball> balls = new ArrayList<>();
+    private final Ball[] sortedBalls = new Ball[BALL_COUNT];
 
     // ---------------------------------------------------------
     // 50k Particle State Arrays (Tied to Spheres)
@@ -95,6 +103,7 @@ public class ParticleTimelineDemo extends Canvas {
             b.z = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
 
             balls.add(b);
+            sortedBalls[i] = b;
 
             animateAxisX(b);
             animateAxisY(b);
@@ -113,14 +122,13 @@ public class ParticleTimelineDemo extends Canvas {
             orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.005f + r.nextFloat() * 0.012f);
             orbitTilt[i] = r.nextFloat() * (float) Math.PI;
 
-            // Varied particle sizes: mostly dust (1.0), some bright star sparks (2.5 - 4.5)
             float sRoll = r.nextFloat();
             if (sRoll > 0.94f) {
-                particleBaseSize[i] = 3.5f + r.nextFloat() * 2.0f; // Big glowing star cores
+                particleBaseSize[i] = 3.5f + r.nextFloat() * 2.0f;
             } else if (sRoll > 0.70f) {
-                particleBaseSize[i] = 2.0f + r.nextFloat() * 1.2f; // Medium nodes
+                particleBaseSize[i] = 2.0f + r.nextFloat() * 1.2f;
             } else {
-                particleBaseSize[i] = 1.0f + r.nextFloat() * 0.6f; // Fine dust
+                particleBaseSize[i] = 1.0f + r.nextFloat() * 0.6f;
             }
 
             Ball b = balls.get(bIdx);
@@ -182,7 +190,7 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // Gentle Local Repulsion Offset (Keeps spheres separated smoothly)
+    // Gentle Local Repulsion Offset
     // ---------------------------------------------------------
     private void updateGentleSeparation() {
         float sepDist = 180.0f;
@@ -215,7 +223,7 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // Combined High-Speed Render Loop
+    // Combined High-Speed Render Loop with Z-Sorting and Fog
     // ---------------------------------------------------------
     public void start() {
         createBufferStrategy(3);
@@ -230,6 +238,9 @@ public class ParticleTimelineDemo extends Canvas {
 
             float camYaw = 0f;
             float camPitch = 0f;
+
+            // Pre-allocated comparator for zero-GC Z-sorting (back to front)
+            Comparator<Ball> zComparator = (b1, b2) -> Float.compare(b2.zDepth, b1.zDepth);
 
             while (true) {
                 long nowLoop = System.nanoTime();
@@ -252,16 +263,16 @@ public class ParticleTimelineDemo extends Canvas {
                 float sinP = (float) Math.sin(camPitch);
 
                 // 3. Crisp Black Screen Clear
-                java.util.Arrays.fill(pixels, 0);
+                Arrays.fill(pixels, 0);
 
-                // 4. Volumetric Orbit Particles Update & Multi-Pixel Glow Splatting
+                // 4. Volumetric Orbit Particles Update & Atmospheric Fog Splatting
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
 
                     orbitAngle[i] += orbitSpeed[i];
 
-                    // Probabilistic migration (0.12% chance to drift to another sphere)
+                    // Probabilistic migration
                     if (r.nextInt(800) == 0) {
                         targetBallIndex[i] = r.nextInt(BALL_COUNT);
                         orbitRadius[i] = 20.0f + r.nextFloat() * 110.0f;
@@ -279,7 +290,6 @@ public class ParticleTimelineDemo extends Canvas {
                     float targetY = parent.y + parent.boidOffsetY + oy;
                     float targetZ = parent.z + parent.boidOffsetZ + oz;
 
-                    // Physics momentum with smooth damping (eliminates artificial linear snapping)
                     velX[i] = (velX[i] + (targetX - posX[i]) * 0.035f) * 0.90f;
                     velY[i] = (velY[i] + (targetY - posY[i]) * 0.035f) * 0.90f;
                     velZ[i] = (velZ[i] + (targetZ - posZ[i]) * 0.035f) * 0.90f;
@@ -298,6 +308,10 @@ public class ParticleTimelineDemo extends Canvas {
                     float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 1.0f) continue;
 
+                    // Atmospheric Depth Fog Factor (1.0 = near/bright, 0.0 = deep in background fog)
+                    float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
+                    fog = Math.max(0.04f, Math.min(1.0f, fog * fog)); // quadratic atmospheric falloff
+
                     float scale = FOV / zDepth;
                     int sx = (int) (WIDTH / 2f + rx * scale);
                     int sy = (int) (HEIGHT / 2f + ry * scale);
@@ -305,25 +319,21 @@ public class ParticleTimelineDemo extends Canvas {
                     float pSize = particleBaseSize[i] * scale;
 
                     if (sx >= 2 && sx < WIDTH - 2 && sy >= 2 && sy < HEIGHT - 2) {
-                        int coreIntensity = (int) (Math.min(1.0f, scale * 1.7f) * 255);
+                        int coreIntensity = (int) (Math.min(1.0f, scale * 1.8f) * fog * 255);
                         int centerIdx = sy * WIDTH + sx;
 
-                        // Center core
                         blendPixel(centerIdx, coreIntensity);
 
-                        // If particle is larger or closer to camera, splat volumetric 3x3 or 5x5 disk
                         if (pSize > 1.8f) {
-                            int halo1 = coreIntensity >> 1; // 50% brightness inner halo
-                            int halo2 = coreIntensity >> 3; // 12% outer flare
+                            int halo1 = coreIntensity >> 1;
+                            int halo2 = coreIntensity >> 3;
 
-                            // 3x3 inner diamond
                             blendPixel(centerIdx - 1, halo1);
                             blendPixel(centerIdx + 1, halo1);
                             blendPixel(centerIdx - WIDTH, halo1);
                             blendPixel(centerIdx + WIDTH, halo1);
 
                             if (pSize > 3.0f) {
-                                // 5x5 outer cross for massive star nodes
                                 blendPixel(centerIdx - 2, halo2);
                                 blendPixel(centerIdx + 2, halo2);
                                 blendPixel(centerIdx - WIDTH * 2, halo2);
@@ -334,7 +344,6 @@ public class ParticleTimelineDemo extends Canvas {
                                 blendPixel(centerIdx + WIDTH + 1, halo2);
                             }
                         } else {
-                            // Sub-pixel 3x3 faint flare for small dust
                             int glow = coreIntensity >> 3;
                             blendPixel(centerIdx - 1, glow);
                             blendPixel(centerIdx + 1, glow);
@@ -344,27 +353,39 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 5. Render Large FastTween Spheres
-                Graphics2D g2d = screenBuffer.createGraphics();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(Color.WHITE);
-
+                // 5. Calculate Rotated Coordinates & Z-Depth for all Spheres
                 for (Ball b : balls) {
                     float bx = b.x + b.boidOffsetX;
                     float by = b.y + b.boidOffsetY;
                     float bz = b.z + b.boidOffsetZ;
 
-                    float rx = bx * cosY - bz * sinY;
+                    b.rotX = bx * cosY - bz * sinY;
                     float rz = bx * sinY + bz * cosY;
-                    float ry = by * cosP - rz * sinP;
-                    rz = by * sinP + rz * cosP;
+                    b.rotY = by * cosP - rz * sinP;
+                    b.rotZ = by * sinP + rz * cosP;
+                    b.zDepth = FOV + b.rotZ + CUBE_SIZE;
+                }
 
-                    float zDepth = FOV + rz + CUBE_SIZE;
-                    if (zDepth <= 0.1f) continue;
+                // Zero-GC Z-Sort: Sort spheres back-to-front for proper occlusion
+                Arrays.sort(sortedBalls, zComparator);
 
-                    float scale = FOV / zDepth;
-                    float screenX = WIDTH / 2f + rx * scale;
-                    float screenY = HEIGHT / 2f + ry * scale;
+                // 6. Render Z-Sorted Spheres with Atmospheric Depth Fog
+                Graphics2D g2d = screenBuffer.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                for (Ball b : sortedBalls) {
+                    if (b.zDepth <= 0.1f) continue;
+
+                    // Fog calculation for sphere: near = 255 pure white, far = dark atmospheric grey (35)
+                    float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
+                    fog = Math.max(0.08f, Math.min(1.0f, fog));
+                    int shade = (int) (35 + fog * 220); // 35 to 255 brightness
+
+                    g2d.setColor(new Color(shade, shade, shade));
+
+                    float scale = FOV / b.zDepth;
+                    float screenX = WIDTH / 2f + b.rotX * scale;
+                    float screenY = HEIGHT / 2f + b.rotY * scale;
                     float radius = 48f * scale * b.radiusScale;
 
                     if (radius > 0) {
@@ -374,26 +395,26 @@ public class ParticleTimelineDemo extends Canvas {
                 }
                 g2d.dispose();
 
-                // 6. Present Frame
+                // 7. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 7. FPS Counter in Window Title
+                // 8. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Volumetric Stars | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Z-Sorted Spheres (Depth Fog) + 50,000 Stars | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-Volumetric").start();
+        }, "Render-Loop-DepthFog").start();
     }
 
     private void blendPixel(int index, int add) {
@@ -407,7 +428,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Volumetric Stars");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres (Depth Fog) + 50,000 Stars");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
