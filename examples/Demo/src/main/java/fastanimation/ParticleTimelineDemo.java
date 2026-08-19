@@ -16,13 +16,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: 3D BOIDS Flocking Realm + 50,000 Particle Cloud.
+ * FastAnimation Demo 2: Cinematic 3D FastTween Realm + 50,000 Gentle Orbit Particles.
  *
  * <p>Features:
  * <ul>
- *   <li>300 Spheres driven by real-time 3D BOIDS flocking physics (Separation, Alignment, Cohesion)</li>
- *   <li>50,000 Swarm particles with smooth gravitational orbits tracking the boid flock</li>
- *   <li>Continuous cinematic 3D orbital camera rotation (Yaw + Pitch matrix)</li>
+ *   <li>300 Independent spheres moving via original FastTween Quad-InOut axis keyframes</li>
+ *   <li>Subtle, gentle BOIDS separation offset keeping the spheres clean and dispersed</li>
+ *   <li>50,000 slow, graceful orbit particles smoothly floating around the spheres</li>
+ *   <li>Gentle 3D orbital camera rotation (Yaw + Pitch matrix)</li>
  *   <li>Sub-pixel Gaussian bloom & glow flare kernel (3x3 luminous cross-splat)</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
@@ -34,30 +35,24 @@ public class ParticleTimelineDemo extends Canvas {
 
     private static final int BALL_COUNT = 300;
     private static final int PARTICLE_COUNT = 50_000;
-    private static final float CUBE_SIZE = 550f;
+    private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
-
-    // BOIDS Physics Parameters
-    private static final float MAX_SPEED = 5.0f;
-    private static final float MAX_FORCE = 0.28f;
-    private static final float DESIRED_SEPARATION = 110.0f; // 2.5x larger separation distance
-    private static final float NEIGHBOR_DIST = 180.0f;
 
     private static final Ellipse2D ellipse2D = new Ellipse2D.Float();
 
     // ---------------------------------------------------------
-    // 3D Boid Ball Model
+    // 3D Sphere Model
     // ---------------------------------------------------------
-    private static class Boid {
+    private static class Ball {
         float x, y, z;
-        float vx, vy, vz;
+        float boidOffsetX, boidOffsetY, boidOffsetZ;
         float radiusScale = 1.0f;
     }
 
-    private final List<Boid> boids = new ArrayList<>();
+    private final List<Ball> balls = new ArrayList<>();
 
     // ---------------------------------------------------------
-    // 50k Particle State Arrays (Tied to Boids)
+    // 50k Particle State Arrays (Tied to Spheres)
     // ---------------------------------------------------------
     private final float[] posX = new float[PARTICLE_COUNT];
     private final float[] posY = new float[PARTICLE_COUNT];
@@ -89,47 +84,82 @@ public class ParticleTimelineDemo extends Canvas {
     private void init3DScene() {
         FastAnimation.setHeartbeatMode(HeartbeatMode.NATIVE_VSYNC);
 
-        // 1. Initialize 300 3D Boids
-        Random r = new Random(42);
+        // 1. Initialize 300 Spheres with original FastTween Axis Loops
         for (int i = 0; i < BALL_COUNT; i++) {
-            Boid b = new Boid();
-            b.x = (r.nextFloat() * CUBE_SIZE * 2) - CUBE_SIZE;
-            b.y = (r.nextFloat() * CUBE_SIZE * 2) - CUBE_SIZE;
-            b.z = (r.nextFloat() * CUBE_SIZE * 2) - CUBE_SIZE;
+            Ball b = new Ball();
+            b.x = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
+            b.y = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
+            b.z = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
 
-            double theta = r.nextDouble() * 2 * Math.PI;
-            double phi = Math.acos(2 * r.nextDouble() - 1);
-            float speed = 2.0f + r.nextFloat() * 2.0f;
+            balls.add(b);
 
-            b.vx = (float) (Math.sin(phi) * Math.cos(theta) * speed);
-            b.vy = (float) (Math.sin(phi) * Math.sin(theta) * speed);
-            b.vz = (float) (Math.cos(phi) * speed);
-
-            boids.add(b);
+            animateAxisX(b);
+            animateAxisY(b);
+            animateAxisZ(b);
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles tied to the 300 boids
+        // 2. Initialize 50,000 Particles (Slower, gentle orbits)
+        Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
             targetBallIndex[i] = bIdx;
 
-            orbitRadius[i] = 18.0f + r.nextFloat() * 105.0f;
+            orbitRadius[i] = 16.0f + r.nextFloat() * 85.0f;
             orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
-            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.07f);
+            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.006f + r.nextFloat() * 0.015f); // Much slower orbit speed
             orbitTilt[i] = r.nextFloat() * (float) Math.PI;
 
-            Boid b = boids.get(bIdx);
+            Ball b = balls.get(bIdx);
             posX[i] = b.x;
             posY[i] = b.y;
             posZ[i] = b.z;
         }
     }
 
-    private void animateScale(Boid b) {
+    // ---------------------------------------------------------
+    // Original FastTween Axis Animations
+    // ---------------------------------------------------------
+    private void animateAxisX(Ball b) {
+        float current = b.x;
+        float target = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
+        long duration = (long) (Math.abs(target - current) / CUBE_SIZE * 2200 + 1200 + Math.random() * 1200);
+        FastAnimation.parallel(
+                FastTween.to(current, target, duration)
+                        .ease(Ease.QUAD_IN_OUT)
+                        .onUpdate(v -> b.x = v)
+                        .onComplete(() -> animateAxisX(b))
+        ).start();
+    }
+
+    private void animateAxisY(Ball b) {
+        float current = b.y;
+        float target = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
+        long duration = (long) (Math.abs(target - current) / CUBE_SIZE * 2200 + 1200 + Math.random() * 1200);
+        FastAnimation.parallel(
+                FastTween.to(current, target, duration)
+                        .ease(Ease.QUAD_IN_OUT)
+                        .onUpdate(v -> b.y = v)
+                        .onComplete(() -> animateAxisY(b))
+        ).start();
+    }
+
+    private void animateAxisZ(Ball b) {
+        float current = b.z;
+        float target = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
+        long duration = (long) (Math.abs(target - current) / CUBE_SIZE * 2200 + 1200 + Math.random() * 1200);
+        FastAnimation.parallel(
+                FastTween.to(current, target, duration)
+                        .ease(Ease.QUAD_IN_OUT)
+                        .onUpdate(v -> b.z = v)
+                        .onComplete(() -> animateAxisZ(b))
+        ).start();
+    }
+
+    private void animateScale(Ball b) {
         float current = b.radiusScale;
         float target = 0.3f + (float) (Math.random() * 0.7f);
-        long duration = (long) (1000 + Math.random() * 2000);
+        long duration = (long) (1200 + Math.random() * 2000);
         FastAnimation.parallel(
                 FastTween.to(current, target, duration)
                         .ease(Ease.QUAD_IN_OUT)
@@ -139,99 +169,35 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // 3D BOIDS Flocking Simulation Step
+    // Gentle Local Repulsion Offset (Keeps spheres separated smoothly)
     // ---------------------------------------------------------
-    private void updateBoids() {
+    private void updateGentleSeparation() {
+        float sepDist = 90.0f;
         for (int i = 0; i < BALL_COUNT; i++) {
-            Boid b = boids.get(i);
-
-            float sepX = 0, sepY = 0, sepZ = 0;
-            float aliX = 0, aliY = 0, aliZ = 0;
-            float cohX = 0, cohY = 0, cohZ = 0;
-            int count = 0;
-            int sepCount = 0;
+            Ball b = balls.get(i);
+            float sx = 0, sy = 0, sz = 0;
 
             for (int j = 0; j < BALL_COUNT; j++) {
                 if (i == j) continue;
-                Boid other = boids.get(j);
+                Ball other = balls.get(j);
 
-                float dx = b.x - other.x;
-                float dy = b.y - other.y;
-                float dz = b.z - other.z;
+                float dx = (b.x + b.boidOffsetX) - (other.x + other.boidOffsetX);
+                float dy = (b.y + b.boidOffsetY) - (other.y + other.boidOffsetY);
+                float dz = (b.z + b.boidOffsetZ) - (other.z + other.boidOffsetZ);
                 float distSq = dx * dx + dy * dy + dz * dz;
 
-                if (distSq > 0 && distSq < NEIGHBOR_DIST * NEIGHBOR_DIST) {
+                if (distSq > 0 && distSq < sepDist * sepDist) {
                     float d = (float) Math.sqrt(distSq);
-                    aliX += other.vx;
-                    aliY += other.vy;
-                    aliZ += other.vz;
-
-                    cohX += other.x;
-                    cohY += other.y;
-                    cohZ += other.z;
-                    count++;
-
-                    if (d < DESIRED_SEPARATION) {
-                        sepX += dx / (d * d);
-                        sepY += dy / (d * d);
-                        sepZ += dz / (d * d);
-                        sepCount++;
-                    }
+                    float force = (sepDist - d) / sepDist;
+                    sx += (dx / d) * force * 1.2f;
+                    sy += (dy / d) * force * 1.2f;
+                    sz += (dz / d) * force * 1.2f;
                 }
             }
 
-            // Apply Flocking Forces
-            float ax = 0, ay = 0, az = 0;
-
-            if (sepCount > 0) {
-                ax += sepX * 2.8f;
-                ay += sepY * 2.8f;
-                az += sepZ * 2.8f;
-            }
-
-            if (count > 0) {
-                // Alignment (Subtle directional flow)
-                aliX /= count;
-                aliY /= count;
-                aliZ /= count;
-                ax += (aliX - b.vx) * 0.015f;
-                ay += (aliY - b.vy) * 0.015f;
-                az += (aliZ - b.vz) * 0.015f;
-
-                // Cohesion (Minimal attraction to prevent any center-blobs)
-                cohX /= count;
-                cohY /= count;
-                cohZ /= count;
-                ax += (cohX - b.x) * 0.00015f;
-                ay += (cohY - b.y) * 0.00015f;
-                az += (cohZ - b.z) * 0.00015f;
-            }
-
-            // Boundary containment box
-            float boundForce = 0.08f;
-            if (b.x > CUBE_SIZE) ax -= boundForce * (b.x - CUBE_SIZE);
-            else if (b.x < -CUBE_SIZE) ax -= boundForce * (b.x + CUBE_SIZE);
-            if (b.y > CUBE_SIZE) ay -= boundForce * (b.y - CUBE_SIZE);
-            else if (b.y < -CUBE_SIZE) ay -= boundForce * (b.y + CUBE_SIZE);
-            if (b.z > CUBE_SIZE) az -= boundForce * (b.z - CUBE_SIZE);
-            else if (b.z < -CUBE_SIZE) az -= boundForce * (b.z + CUBE_SIZE);
-
-            // Limit acceleration & update velocity
-            b.vx += Math.max(-MAX_FORCE, Math.min(MAX_FORCE, ax));
-            b.vy += Math.max(-MAX_FORCE, Math.min(MAX_FORCE, ay));
-            b.vz += Math.max(-MAX_FORCE, Math.min(MAX_FORCE, az));
-
-            // Limit Max Speed
-            float speed = (float) Math.sqrt(b.vx * b.vx + b.vy * b.vy + b.vz * b.vz);
-            if (speed > MAX_SPEED) {
-                b.vx = (b.vx / speed) * MAX_SPEED;
-                b.vy = (b.vy / speed) * MAX_SPEED;
-                b.vz = (b.vz / speed) * MAX_SPEED;
-            }
-
-            b.x += b.vx;
-            b.y += b.vy;
-            b.z += b.vz;
+            b.boidOffsetX += (sx - b.boidOffsetX) * 0.05f;
+            b.boidOffsetY += (sy - b.boidOffsetY) * 0.05f;
+            b.boidOffsetZ += (sz - b.boidOffsetZ) * 0.05f;
         }
     }
 
@@ -260,12 +226,12 @@ public class ParticleTimelineDemo extends Canvas {
                 }
                 lastRenderTime = nowLoop;
 
-                // 1. Update 300 BOIDS flocking simulation
-                updateBoids();
+                // 1. Gentle Sphere Separation
+                updateGentleSeparation();
 
-                // 2. Slow, majestic 3D Camera Orbit
-                camYaw += 0.0035f;
-                camPitch = (float) Math.sin(camYaw * 0.5f) * 0.25f;
+                // 2. Slow, graceful 3D Camera Orbit
+                camYaw += 0.002f; // Slower camera pan
+                camPitch = (float) Math.sin(camYaw * 0.5f) * 0.2f;
 
                 float cosY = (float) Math.cos(camYaw);
                 float sinY = (float) Math.sin(camYaw);
@@ -275,18 +241,18 @@ public class ParticleTimelineDemo extends Canvas {
                 // 3. Crisp Black Screen Clear
                 java.util.Arrays.fill(pixels, 0);
 
-                // 4. Swarm Physics & Bloom Splatting for 50,000 Particles
+                // 4. Slow Orbit Particles Update & Splatting
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
-                    Boid parent = boids.get(bIdx);
+                    Ball parent = balls.get(bIdx);
 
                     orbitAngle[i] += orbitSpeed[i];
 
-                    // Probabilistic boid hopping (0.3% chance to migrate)
-                    if (r.nextInt(330) == 0) {
+                    // Probabilistic migration (0.15% chance to drift to another sphere)
+                    if (r.nextInt(650) == 0) {
                         targetBallIndex[i] = r.nextInt(BALL_COUNT);
-                        orbitRadius[i] = 18.0f + r.nextFloat() * 105.0f;
-                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.02f + r.nextFloat() * 0.07f);
+                        orbitRadius[i] = 16.0f + r.nextFloat() * 85.0f;
+                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.006f + r.nextFloat() * 0.015f);
                     }
 
                     float radius = orbitRadius[i] * parent.radiusScale;
@@ -296,10 +262,14 @@ public class ParticleTimelineDemo extends Canvas {
                     float oy = (float) (Math.sin(orbitAngle[i]) * Math.cos(tilt) * radius);
                     float oz = (float) (Math.sin(orbitAngle[i]) * Math.sin(tilt) * radius);
 
-                    // Fluid gravitational pull toward parent boid
-                    posX[i] += (parent.x + ox - posX[i]) * 0.12f;
-                    posY[i] += (parent.y + oy - posY[i]) * 0.12f;
-                    posZ[i] += (parent.z + oz - posZ[i]) * 0.12f;
+                    float targetX = parent.x + parent.boidOffsetX + ox;
+                    float targetY = parent.y + parent.boidOffsetY + oy;
+                    float targetZ = parent.z + parent.boidOffsetZ + oz;
+
+                    // Smooth, gentle drift toward target position
+                    posX[i] += (targetX - posX[i]) * 0.04f; // Slower follow dampening
+                    posY[i] += (targetY - posY[i]) * 0.04f;
+                    posZ[i] += (targetZ - posZ[i]) * 0.04f;
 
                     // Camera 3D Rotation Transform (Yaw + Pitch)
                     float rx = posX[i] * cosY - posZ[i] * sinY;
@@ -332,16 +302,20 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 5. Render Large BOID Spheres
+                // 5. Render Large FastTween Spheres
                 Graphics2D g2d = screenBuffer.createGraphics();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2d.setColor(Color.WHITE);
 
-                for (Boid b : boids) {
-                    float rx = b.x * cosY - b.z * sinY;
-                    float rz = b.x * sinY + b.z * cosY;
-                    float ry = b.y * cosP - rz * sinP;
-                    rz = b.y * sinP + rz * cosP;
+                for (Ball b : balls) {
+                    float bx = b.x + b.boidOffsetX;
+                    float by = b.y + b.boidOffsetY;
+                    float bz = b.z + b.boidOffsetZ;
+
+                    float rx = bx * cosY - bz * sinY;
+                    float rz = bx * sinY + bz * cosY;
+                    float ry = by * cosP - rz * sinP;
+                    rz = by * sinP + rz * cosP;
 
                     float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 0.1f) continue;
@@ -349,7 +323,7 @@ public class ParticleTimelineDemo extends Canvas {
                     float scale = FOV / zDepth;
                     float screenX = WIDTH / 2f + rx * scale;
                     float screenY = HEIGHT / 2f + ry * scale;
-                    float radius = 46f * scale * b.radiusScale;
+                    float radius = 48f * scale * b.radiusScale;
 
                     if (radius > 0) {
                         ellipse2D.setFrame(screenX - radius, screenY - radius, radius * 2, radius * 2);
@@ -371,13 +345,13 @@ public class ParticleTimelineDemo extends Canvas {
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 BOIDS Flocking + 50,000 Particles | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres (FastTween) + 50,000 Particles | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-Boids").start();
+        }, "Render-Loop-Graceful").start();
     }
 
     private void blendPixel(int index, int add) {
@@ -391,7 +365,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 BOIDS Flocking + 50,000 Particles");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
