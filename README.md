@@ -159,20 +159,25 @@ Add the JitPack repository and the dependency to your `pom.xml`:
         <artifactId>fastdwm</artifactId>
         <version>0.1.0</version>
     </dependency>
+    <!-- Optional: High-throughput GPU Compute Shader & Math Pipeline -->
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
-        <artifactId>fastcore</artifactId>
-        <version>v1.0.0</version>
+        <artifactId>fastgpu</artifactId>
+        <version>0.1.0</version>
+        <optional>true</optional>
     </dependency>
 </dependencies>
 ```
+
+> **Note on FastGPU Integration:**
+> FastGPU is completely **optional**. For high-density particle simulations and hardware compute workloads (see `ParticleTimelineDemo`), FastGPU can be paired with FastAnimation to offload parallel 3D matrix math, depth buffering, and color shaders directly to GPU compute pipelines while FastAnimation handles timeline orchestration.
 
 ### Option 2: Gradle (via JitPack)
 
 ```groovy
 repositories {
     maven { url 'https://jitpack.io' }
-
+}
 
 dependencies {
     implementation 'com.github.andrestubbe:fastanimation:0.1.1'
@@ -183,6 +188,8 @@ dependencies {
     // Required for NATIVE_MM and NATIVE_VSYNC
     implementation 'com.github.andrestubbe:fastdwm:0.1.0'
     implementation 'com.github.andrestubbe:fastcore:v1.0.0'
+    // Optional: High-throughput GPU Compute
+    compileOnly 'com.github.andrestubbe:fastgpu:0.1.0'
 }
 ```
 
@@ -195,6 +202,7 @@ Download the latest JAR directly to add it to your classpath:
 3. 📦 **[fastexecution-0.1.0.jar](https://github.com/andrestubbe/FastExecution/releases/download/0.1.0/fastexecution-0.1.0.jar)** (Required for high-precision scheduling)
 4. 📦 **[fastdwm-0.1.0.jar](https://github.com/andrestubbe/FastDWM/releases/download/0.1.0/fastdwm-0.1.0.jar)** (Required for NATIVE_MM and NATIVE_VSYNC)
 5. 📦 **[fastcore-0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/0.1.0/fastcore-0.1.0.jar)** (Required Native JNI loader)
+6. 📦 **[fastgpu-0.1.0.jar](https://github.com/andrestubbe/FastGPU/releases/download/0.1.0/fastgpu-0.1.0.jar)** (Optional: GPU Compute Engine)
 
 ---
 
@@ -228,6 +236,7 @@ MIT License — See [LICENSE](LICENSE) for details.
 
 - [FastTween](https://github.com/andrestubbe/FastTween) — Zero overhead pool-based tweening
 - [FastAnimation](https://github.com/andrestubbe/FastAnimation) — Zero overhead timeline orchestration
+- [FastGPU](https://github.com/andrestubbe/FastGPU) — High-throughput parallel GPU compute and math engine
 - [FastExecution](https://github.com/andrestubbe/FastExecution) — High-precision scheduling engine
 - [FastDWM](https://github.com/andrestubbe/FastDWM) — Native Desktop Window Manager API
 - [FastCore](https://github.com/andrestubbe/FastCore) — Native JNI Loader and Utilities
@@ -236,4 +245,5 @@ MIT License — See [LICENSE](LICENSE) for details.
 ---
 
 **Part of the FastJava Ecosystem** — *Making the JVM faster. Small package. Maximum speed. Zero bloat. 🚀📋*
+
 
