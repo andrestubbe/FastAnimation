@@ -16,17 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-/**
- * FastAnimation Demo 2: Tokyo Night Synthwave + FastGPU Math Engine (Ultra-High FPS Uncapped).
- *
- * <p>Optimizations:
- * <ul>
- *   <li>Precomputed FastMath Trigonometry Lookups (Zero Math.sin/cos per-particle overhead)</li>
- *   <li>Bit-Parallel Fast Integer Motion Blur Decay (SIMD-style 32-bit channel packing)</li>
- *   <li>Direct 1-Pixel Fast Path for 35,000+ dust nodes</li>
- *   <li>Uncapped High-Refresh Render Loop for maximum FPS throughput</li>
- * </ul>
- */
 public class ParticleTimelineDemo extends Canvas {
 
     private static final int WIDTH = 1173;
@@ -37,18 +26,13 @@ public class ParticleTimelineDemo extends Canvas {
     private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
 
-    // Atmospheric Fog Range
     private static final float FOG_NEAR = 100f;
     private static final float FOG_FAR = 2400f;
 
-    // Retro Neon Palette Constants (RGB Float Weights)
     private static final float[] COLOR_MAGENTA = { 1.0f, 0.08f, 0.58f };
     private static final float[] COLOR_CYAN = { 0.0f, 0.94f, 1.0f };
     private static final float[] COLOR_AMBER = { 1.0f, 0.55f, 0.0f };
 
-    // ---------------------------------------------------------
-    // High-Speed Trigonometry Lookup Tables (FastMath)
-    // ---------------------------------------------------------
     private static final int TRIG_SIZE = 4096;
     private static final int TRIG_MASK = TRIG_SIZE - 1;
     private static final float RAD_TO_INDEX = (float) (TRIG_SIZE / (2.0 * Math.PI));
@@ -71,9 +55,6 @@ public class ParticleTimelineDemo extends Canvas {
         return COS_TABLE[(int) (rad * RAD_TO_INDEX) & TRIG_MASK];
     }
 
-    // ---------------------------------------------------------
-    // 3D Sphere Model with Projected Z-Depth
-    // ---------------------------------------------------------
     private static class Ball {
         float x, y, z;
         float boidOffsetX, boidOffsetY, boidOffsetZ;
@@ -84,9 +65,6 @@ public class ParticleTimelineDemo extends Canvas {
 
     private final List<Ball> balls = new ArrayList<>();
 
-    // ---------------------------------------------------------
-    // 50k Particle State Arrays (Tied to Spheres with Turbulence)
-    // ---------------------------------------------------------
     private final float[] posX = new float[PARTICLE_COUNT];
     private final float[] posY = new float[PARTICLE_COUNT];
     private final float[] posZ = new float[PARTICLE_COUNT];
@@ -125,7 +103,6 @@ public class ParticleTimelineDemo extends Canvas {
     private void init3DScene() {
         FastAnimation.setHeartbeatMode(HeartbeatMode.NATIVE_VSYNC);
 
-        // 1. Initialize 300 Spheres with FastTween Axis Loops
         for (int i = 0; i < BALL_COUNT; i++) {
             Ball b = new Ball();
             b.x = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
@@ -140,7 +117,6 @@ public class ParticleTimelineDemo extends Canvas {
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles with wide chaotic orbits
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
@@ -170,9 +146,6 @@ public class ParticleTimelineDemo extends Canvas {
         }
     }
 
-    // ---------------------------------------------------------
-    // FastTween Axis Animations
-    // ---------------------------------------------------------
     private void animateAxisX(Ball b) {
         float current = b.x;
         float target = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
@@ -221,9 +194,6 @@ public class ParticleTimelineDemo extends Canvas {
         ).start();
     }
 
-    // ---------------------------------------------------------
-    // Gentle Local Repulsion Offset
-    // ---------------------------------------------------------
     private void updateGentleSeparation() {
         float sepDist = 180.0f;
         for (int i = 0; i < BALL_COUNT; i++) {
@@ -254,9 +224,6 @@ public class ParticleTimelineDemo extends Canvas {
         }
     }
 
-    // ---------------------------------------------------------
-    // Retro Synthwave Color Shader
-    // ---------------------------------------------------------
     private static int computeRetroColor(float px, float py, float pz, float fog,
                                          float ambR, float ambG, float ambB,
                                          float mEx, float mEy, float mEz,
@@ -294,9 +261,6 @@ public class ParticleTimelineDemo extends Canvas {
         return (cr << 16) | (cg << 8) | cb;
     }
 
-    // ---------------------------------------------------------
-    // Combined Ultra-Fast Render Loop (Uncapped Max FPS)
-    // ---------------------------------------------------------
     public void start() {
         createBufferStrategy(3);
         BufferStrategy bs = getBufferStrategy();
@@ -315,15 +279,12 @@ public class ParticleTimelineDemo extends Canvas {
                 lightPhase += 0.018f;
                 ambientPhase += 0.005f;
 
-                // 1. Gentle Sphere Separation
                 updateGentleSeparation();
 
-                // 2. Ambient Color Field
                 float ambR = (float) (0.5f + 0.5f * fastSin(ambientPhase));
                 float ambG = (float) (0.3f + 0.3f * fastSin(ambientPhase + 2.094f));
                 float ambB = (float) (0.6f + 0.4f * fastSin(ambientPhase + 4.188f));
 
-                // 3. Emitters
                 float mEx = fastCos(lightPhase) * 560f;
                 float mEy = fastSin(lightPhase * 0.7f) * 380f;
                 float mEz = fastSin(lightPhase) * 560f;
@@ -336,7 +297,6 @@ public class ParticleTimelineDemo extends Canvas {
                 float aEy = fastSin((lightPhase + 4.188f) * 0.7f) * 380f;
                 float aEz = fastSin(lightPhase + 4.188f) * 560f;
 
-                // 4. 3D Camera Orbit
                 camYaw += 0.002f;
                 camPitch = fastSin(camYaw * 0.5f) * 0.2f;
 
@@ -345,7 +305,6 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = fastCos(camPitch);
                 float sinP = fastSin(camPitch);
 
-                // 5. Bit-Parallel Motion Blur Decay toward TokyoNight (#1a1b26 -> 26, 27, 38)
                 int bgR = 26, bgG = 27, bgB = 38;
                 for (int i = 0; i < pixels.length; i++) {
                     int p = pixels[i];
@@ -361,7 +320,6 @@ public class ParticleTimelineDemo extends Canvas {
                 }
                 Arrays.fill(zBuffer, Float.MAX_VALUE);
 
-                // 6. Rasterize 300 Spheres into Z-Buffer & Pixel Buffer
                 for (Ball b : balls) {
                     float bx = b.x + b.boidOffsetX;
                     float by = b.y + b.boidOffsetY;
@@ -415,7 +373,6 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 7. Volumetric Orbit Particles (with FastMath lookups & fast-path single-pixel testing)
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
@@ -454,7 +411,6 @@ public class ParticleTimelineDemo extends Canvas {
                     posY[i] += velY[i];
                     posZ[i] += velZ[i];
 
-                    // Camera 3D Transform
                     float rx = posX[i] * cosY - posZ[i] * sinY;
                     float rz = posX[i] * sinY + posZ[i] * cosY;
                     float ry = posY[i] * cosP - rz * sinP;
@@ -509,14 +465,12 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 8. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 9. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
