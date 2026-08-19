@@ -612,7 +612,18 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 8. Additive White Blend for Current 'Enter the Void' Kinetic Typography Cut
+                // 8. Dynamic Radiant Typography Blend (Synchronized with Scene Light Fields, Boosted for High Glow)
+                // Sample center scene color at z = 0
+                int textCenterColor = computeRetroColor(0, 0, 0, 1.0f, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
+                int tR = (textCenterColor >> 16) & 0xFF;
+                int tG = (textCenterColor >> 8) & 0xFF;
+                int tB = textCenterColor & 0xFF;
+
+                // Brightness & Specular boost (Always brighter/radiant compared to the spheres)
+                tR = Math.min(255, (int) (tR * 1.35f + 40));
+                tG = Math.min(255, (int) (tG * 1.35f + 40));
+                tB = Math.min(255, (int) (tB * 1.35f + 40));
+
                 byte[] currentMask = textAlphaMasks[fontCutIndex];
                 for (int i = 0; i < pixels.length; i++) {
                     int alpha = currentMask[i] & 0xFF;
@@ -622,9 +633,10 @@ public class ParticleTimelineDemo extends Canvas {
                         int pg = (p >> 8) & 0xFF;
                         int pb = p & 0xFF;
 
-                        pr = Math.min(255, pr + alpha);
-                        pg = Math.min(255, pg + alpha);
-                        pb = Math.min(255, pb + alpha);
+                        // Additive blend of radiant synchronized text color
+                        pr = Math.min(255, pr + ((tR * alpha) >> 8));
+                        pg = Math.min(255, pg + ((tG * alpha) >> 8));
+                        pb = Math.min(255, pb + ((tB * alpha) >> 8));
 
                         pixels[i] = (pr << 16) | (pg << 8) | pb;
                     }
