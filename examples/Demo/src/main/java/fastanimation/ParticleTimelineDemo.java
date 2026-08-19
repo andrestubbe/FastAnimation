@@ -1,164 +1,197 @@
 package fastanimation;
 
-import fastexecution.FastExecution;
+import fastanimation.AnimationEngine.HeartbeatMode;
+import fastdwm.FastDWM;
+import fasttheme.FastTheme;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: High-Performance Mass Particle Timeline Demo.
+ * FastAnimation Demo 2: Mass 3D Particle Cloud (50,000 Particles, Monochrome White).
  *
- * <p>Simulates and renders 50,000+ timeline-animated particles (position, velocity,
- * alpha easing, and color transitions) clocked by FastExecution native heartbeats.
+ * <p>Features:
+ * <ul>
+ *   <li>50,000 3D particles in a pseudo-3D cube space</li>
+ *   <li>White phosphor decay trails (monochrome black/white)</li>
+ *   <li>Zero-allocation contiguous raster buffer rendering</li>
+ *   <li>Native VSync & FastExecution heartbeat pacing at 120 FPS</li>
+ * </ul>
  */
-public class ParticleTimelineDemo extends JFrame {
+public class ParticleTimelineDemo extends Canvas {
+
+    private static final int WIDTH = 1173;
+    private static final int HEIGHT = 610;
 
     private static final int PARTICLE_COUNT = 50_000;
-    private static final int WIDTH = 900;
-    private static final int HEIGHT = 650;
+    private static final float CUBE_SIZE = 500f;
+    private static final float FOV = 400f;
 
-    // Direct contiguous flat memory buffer for zero-overhead rasterization
+    // Contiguous SIMD-friendly 3D Particle State Arrays
     private final float[] posX = new float[PARTICLE_COUNT];
     private final float[] posY = new float[PARTICLE_COUNT];
+    private final float[] posZ = new float[PARTICLE_COUNT];
     private final float[] velX = new float[PARTICLE_COUNT];
     private final float[] velY = new float[PARTICLE_COUNT];
+    private final float[] velZ = new float[PARTICLE_COUNT];
     private final float[] life = new float[PARTICLE_COUNT];
     private final float[] maxLife = new float[PARTICLE_COUNT];
-    private final int[] colors = new int[PARTICLE_COUNT];
 
-    private final BufferedImage frameBuffer;
-    private final int[] pixels;
-    private final ParticleCanvas canvas;
-    private final JLabel fpsLabel = new JLabel("FastExecution Heartbeat: 60 FPS | 50,000 Partikel", JLabel.CENTER);
+    private BufferedImage screenBuffer;
+    private int[] pixels;
+    private final JFrame parentFrame;
 
-    private int frameCount = 0;
-    private long lastFpsTime = System.currentTimeMillis();
+    public ParticleTimelineDemo(JFrame parentFrame) {
+        this.parentFrame = parentFrame;
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setIgnoreRepaint(true);
 
-    public ParticleTimelineDemo() {
-        super("FastAnimation — Mass Particle Timeline Demo (50,000 Particles)");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(WIDTH, HEIGHT);
-        setLocationRelativeTo(null);
-
-        frameBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        pixels = ((DataBufferInt) frameBuffer.getRaster().getDataBuffer()).getData();
-
-        initParticles();
-
-        canvas = new ParticleCanvas();
-        setLayout(new BorderLayout());
-        add(canvas, BorderLayout.CENTER);
-
-        fpsLabel.setFont(new Font("Monospaced", Font.BOLD, 13));
-        fpsLabel.setForeground(Color.CYAN);
-        fpsLabel.setBackground(Color.BLACK);
-        fpsLabel.setOpaque(true);
-        fpsLabel.setBorder(BorderFactory.createEmptyBorder(6, 10, 8, 10));
-        add(fpsLabel, BorderLayout.SOUTH);
-
-        // Drive simulation loop via FastExecution high-precision timer
-        FastExecution.loop("ParticleTimelineLoop", 60, this::tickAndRender);
+        initBuffers();
+        init3DParticles();
     }
 
-    private void initParticles() {
+    private void initBuffers() {
+        screenBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        pixels = ((DataBufferInt) screenBuffer.getRaster().getDataBuffer()).getData();
+    }
+
+    private void init3DParticles() {
+        FastAnimation.setHeartbeatMode(HeartbeatMode.NATIVE_VSYNC);
+
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             resetParticle(i, r);
-            life[i] = r.nextFloat() * maxLife[i]; // stagger start times
+            life[i] = r.nextFloat() * maxLife[i]; // stagger start time
         }
     }
 
     private void resetParticle(int i, Random r) {
-        posX[i] = WIDTH / 2f;
-        posY[i] = HEIGHT / 2f;
+        posX[i] = (r.nextFloat() - 0.5f) * 60f;
+        posY[i] = (r.nextFloat() - 0.5f) * 60f;
+        posZ[i] = (r.nextFloat() - 0.5f) * 60f;
 
-        double angle = r.nextDouble() * 2 * Math.PI;
-        float speed = 1.0f + r.nextFloat() * 4.5f;
-        velX[i] = (float) (Math.cos(angle) * speed);
-        velY[i] = (float) (Math.sin(angle) * speed);
+        double theta = r.nextDouble() * 2 * Math.PI;
+        double phi = Math.acos(2 * r.nextDouble() - 1);
+        float speed = 0.8f + r.nextFloat() * 3.5f;
 
-        maxLife[i] = 60f + r.nextFloat() * 120f;
+        velX[i] = (float) (Math.sin(phi) * Math.cos(theta) * speed);
+        velY[i] = (float) (Math.sin(phi) * Math.sin(theta) * speed);
+        velZ[i] = (float) (Math.cos(phi) * speed);
+
+        maxLife[i] = 80f + r.nextFloat() * 140f;
         life[i] = 0f;
-
-        int hueChoice = r.nextInt(3);
-        if (hueChoice == 0) colors[i] = 0x00D0FF; // Cyan
-        else if (hueChoice == 1) colors[i] = 0xFF4080; // Magenta
-        else colors[i] = 0xFFA000; // Orange
     }
 
-    private void tickAndRender() {
-        Random r = new Random();
+    public void start() {
+        createBufferStrategy(3);
+        BufferStrategy bs = getBufferStrategy();
 
-        // 1. Fast Fade Background (decay trail)
-        for (int i = 0; i < pixels.length; i++) {
-            int p = pixels[i];
-            int red = (p >> 16) & 0xFF;
-            int green = (p >> 8) & 0xFF;
-            int blue = p & 0xFF;
+        new Thread(() -> {
+            long lastFpsTime = System.nanoTime();
+            int frames = 0;
+            long frameTimeTarget = 1_000_000_000L / 120; // 120 FPS target
+            long lastRenderTime = System.nanoTime();
+            Random r = new Random();
 
-            red = (red * 88) >> 8;
-            green = (green * 88) >> 8;
-            blue = (blue * 88) >> 8;
-            pixels[i] = (red << 16) | (green << 8) | blue;
-        }
+            while (true) {
+                long nowLoop = System.nanoTime();
+                if (nowLoop - lastRenderTime < frameTimeTarget) {
+                    Thread.yield();
+                    continue;
+                }
+                lastRenderTime = nowLoop;
 
-        // 2. Parallel SIMD-style Particle Update & Timeline Easing
-        for (int i = 0; i < PARTICLE_COUNT; i++) {
-            life[i] += 1.0f;
-            if (life[i] >= maxLife[i]) {
-                resetParticle(i, r);
+                // 1. Fast Phosphor Trail Decay (Fade toward black)
+                for (int i = 0; i < pixels.length; i++) {
+                    int p = pixels[i];
+                    int v = (p & 0xFF);
+                    v = (v * 215) >> 8; // decay to black
+                    pixels[i] = (v << 16) | (v << 8) | v;
+                }
+
+                // 2. High-speed 3D Update & 3D->2D Projection
+                for (int i = 0; i < PARTICLE_COUNT; i++) {
+                    life[i] += 1.0f;
+                    if (life[i] >= maxLife[i]) {
+                        resetParticle(i, r);
+                    }
+
+                    float progress = life[i] / maxLife[i];
+                    float alpha = 1.0f - progress * progress; // Ease quadratic fade
+
+                    posX[i] += velX[i];
+                    posY[i] += velY[i];
+                    posZ[i] += velZ[i];
+
+                    // Perspective projection
+                    float zDepth = FOV + posZ[i] + CUBE_SIZE;
+                    if (zDepth <= 1.0f) continue;
+
+                    float scale = FOV / zDepth;
+                    int sx = (int) (WIDTH / 2f + posX[i] * scale);
+                    int sy = (int) (HEIGHT / 2f + posY[i] * scale);
+
+                    if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
+                        int intensity = (int) (Math.min(1.0f, scale * 1.8f) * alpha * 255);
+                        intensity = Math.min(255, Math.max(0, intensity));
+
+                        int current = pixels[sy * WIDTH + sx] & 0xFF;
+                        int blended = Math.min(255, current + intensity);
+                        pixels[sy * WIDTH + sx] = (blended << 16) | (blended << 8) | blended;
+                    }
+                }
+
+                // 3. Present Frame
+                Graphics g = bs.getDrawGraphics();
+                g.drawImage(screenBuffer, 0, 0, null);
+                g.dispose();
+                bs.show();
+                Toolkit.getDefaultToolkit().sync();
+
+                // 4. FPS Counter in Window Title
+                frames++;
+                long now = System.nanoTime();
+                if (now - lastFpsTime >= 1_000_000_000L) {
+                    int fps = frames;
+                    SwingUtilities.invokeLater(() ->
+                            parentFrame.setTitle("FastAnimation — 50,000 3D Particles (Monochrome) | FPS: " + fps)
+                    );
+                    frames = 0;
+                    lastFpsTime = now;
+                }
             }
-
-            // Easing progress (0.0 to 1.0)
-            float progress = life[i] / maxLife[i];
-            float easeAlpha = 1.0f - progress * progress; // Quadratic Out Fade
-
-            posX[i] += velX[i];
-            posY[i] += velY[i];
-
-            int px = (int) posX[i];
-            int py = (int) posY[i];
-
-            if (px >= 0 && px < WIDTH && py >= 0 && py < HEIGHT) {
-                int baseCol = colors[i];
-                int cr = (int) (((baseCol >> 16) & 0xFF) * easeAlpha);
-                int cg = (int) (((baseCol >> 8) & 0xFF) * easeAlpha);
-                int cb = (int) ((baseCol & 0xFF) * easeAlpha);
-
-                pixels[py * WIDTH + px] = (cr << 16) | (cg << 8) | cb;
-            }
-        }
-
-        frameCount++;
-        long now = System.currentTimeMillis();
-        if (now - lastFpsTime >= 1000) {
-            final int fps = frameCount;
-            frameCount = 0;
-            lastFpsTime = now;
-            SwingUtilities.invokeLater(() -> fpsLabel.setText(String.format("FastExecution Heartbeat: %d FPS | 50,000 Partikel (Contiguous Memory Render)", fps)));
-        }
-
-        canvas.repaint();
-    }
-
-    class ParticleCanvas extends JPanel {
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            g.drawImage(frameBuffer, 0, 0, getWidth(), getHeight(), null);
-        }
-    }
-
-    @Override
-    public void dispose() {
-        FastExecution.stop("ParticleTimelineLoop");
-        super.dispose();
+        }, "Render-Loop-50k").start();
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new ParticleTimelineDemo().setVisible(true));
+        System.setProperty("sun.java2d.opengl", "true");
+        System.setProperty("sun.awt.noerasebackground", "true");
+
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("FastAnimation — 50,000 3D Particles (Monochrome)");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setResizable(false);
+            frame.setIgnoreRepaint(true);
+
+            ParticleTimelineDemo demo = new ParticleTimelineDemo(frame);
+            frame.add(demo);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.addNotify();
+
+            try {
+                long hwnd = FastTheme.getWindowHandle(frame);
+                FastTheme.setTitleBarDarkMode(hwnd, true);
+                FastTheme.setTitleBarColor(hwnd, 0, 0, 0);
+                FastTheme.setTitleBarTextColor(hwnd, 255, 255, 255);
+            } catch (Exception ignored) {}
+
+            frame.setVisible(true);
+            demo.start();
+        });
     }
 }
