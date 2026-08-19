@@ -3,17 +3,18 @@ YOUTUBE VIDEO RELEASE
 ================================================================================
 
 TITLE:
-FastAnimation and FastGPU: 300 Spheres and 50,000 Particles at 60 FPS (Zero GC FastJava Engine)
+FastAnimation, FastTween and FastGPU: 300 Spheres and 100,000 Particles at 60 FPS (Zero GC FastJava Engine)
 
 DESCRIPTION:
-What happens when you push Java raw math, hardware acceleration, and software rasterization to the absolute limit?
+What happens when you push Java raw math, hardware compute acceleration, and timeline orchestration to the absolute limit?
 
-In this demo, FastAnimation orchestrates 300 independent FastTween spheres alongside 50,000 live 3D particles that dynamically orbit, track, and migrate across the spheres in real time.
+In this showcase, FastAnimation orchestrates 300 continuous FastTween spheres alongside 100,000 dynamic 3D particles orbiting, tracking, and migrating across the scene in real time.
 
-FastGPU powers the high throughput parallel compute pipelines while FastAnimation drives the timeline orchestration. Zero GC stutters. Zero external dependencies. Contiguous memory arrays, native Windows DWM timing, and per pixel depth buffers.
+FastTween drives allocation free 3D axis interpolation, FastGPU handles massive parallel compute throughput, and FastAnimation conductors the entire timeline lifecycle with zero GC pauses, flat memory layouts, and native Windows multimedia timers.
 
 TECHNICAL HIGHLIGHTS:
-* 50,000 Dynamic Orbit Particles: Contiguous float array memory buffers with 3D perspective projection and cinematic motion blur.
+* 100,000 Dynamic Orbit Particles: Contiguous float array memory buffers with 3D perspective projection and cinematic motion blur.
+* 300 FastTween Spheres: Continuous 3D Quad InOut keyframed axis interpolation with zero heap allocations.
 * FastGPU and FastAnimation Synergy: Unified hardware compute throughput combined with sub millisecond timeline scheduling.
 * Per Pixel Float Z Buffer: Software depth buffer delivering mathematically correct 3D occlusion between spheres and particles.
 * Dynamic RGB Light Fields: 3 orbital point emitters casting real time specular highlights onto a Tokyo Night palette.
@@ -22,9 +23,9 @@ TECHNICAL HIGHLIGHTS:
 
 GITHUB REPOSITORIES:
 * FastAnimation: https://github.com/andrestubbe/FastAnimation
+* FastTween: https://github.com/andrestubbe/FastTween
 * FastGPU: https://github.com/andrestubbe/FastGPU
 * FastExecution: https://github.com/andrestubbe/FastExecution
-* FastTween: https://github.com/andrestubbe/FastTween
 * FastDWM: https://github.com/andrestubbe/FastDWM
 * FastCore: https://github.com/andrestubbe/FastCore
 
@@ -32,7 +33,7 @@ OUR PHILOSOPHY:
 No copies. Contiguous buffers. Native timing. Zero framework overhead. Making the JVM faster.
 
 TAGS:
-Java, FastJava, AnimationEngine, FastAnimation, FastGPU, FastTween, ParticleSimulation, 60FPS, ZeroGC, Performance, JNI, CreativeCoding, Java2D, SoftwareRendering, TokyoNight
+Java, FastJava, AnimationEngine, FastAnimation, FastTween, FastGPU, ParticleSimulation, 60FPS, ZeroGC, Performance, JNI, CreativeCoding, Java2D, SoftwareRendering, TokyoNight
 
 
 ================================================================================
@@ -41,17 +42,17 @@ LINKEDIN POST (ANDRE STUBBE STYLE)
 
 Ich wollte eigentlich nur testen, ob meine Tablet PC GPU ueberhaupt irgendwas fuer AI taugt. Tut sie nicht. Aber fuer Partikel reicht es noch.
 
-Und weil ich mal wieder zu viel Tokyo Night Theming angeguckt habe, ist daraus ein kleines Experiment geworden: Was passiert, wenn man FastGPU und FastAnimation kreuzt?
+Und weil ich mal wieder zu viel Tokyo Night Theming angeguckt habe, ist daraus ein kleines Experiment geworden: Was passiert, wenn man FastGPU, FastAnimation und FastTween kreuzt?
 
 Spoiler: Es laeuft. Und zwar schneller, als die JVM eigentlich erlaubt.
 
-Etwas Besseres als Kugeln als Test in Pseudo 3D ist mir auf die Schnelle nicht eingefallen. Also gibt es jetzt 300 interpolierte Spheres, die sich gleichzeitig bewegen, plus 50.000 Partikel, die um die Kugeln kreisen und wandern.
+Etwas Besseres als Kugeln als Test in Pseudo 3D ist mir auf die Schnelle nicht eingefallen. Also gibt es jetzt 300 interpolierte Spheres, die sich gleichzeitig bewegen, plus 100.000 Partikel, die um die Kugeln kreisen und wandern.
 
 Alles Zero GC, alles native Heartbeats, alles flat memory.
 
 Was unter der Haube abgeht:
 * 300 Tween Spheres mit FastTween (keine Allokationen, nur reine Achsen Mathe)
-* 50.000 Partikel in flachen Arrays mit Orbit Physik und echtem Z Buffer
+* 100.000 Partikel in flachen Arrays mit Orbit Physik und echtem Z Buffer
 * FastGPU Compute fuer den Durchsatz, orchestriert ueber FastAnimation
 * Per Pixel Float Z Buffer fuer echte 3D Occlusion zwischen Partikeln und Kugeln
 * Tokyo Night Retro Atmosphaere mit Dynamic Light Emitters und Motion Blur
@@ -59,11 +60,11 @@ Was unter der Haube abgeht:
 
 Java muss nicht langsam sein. Man muss nur aufhoeren, es wie Standard Java zu benutzen.
 
-Uebrigens: Ich habe FastGPU, FastAnimation und FastTween gebaut. Falls du sehen willst, wie weit man die JVM pruegeln kann:
+Uebrigens: Ich habe FastAnimation, FastTween und FastGPU gebaut. Falls du sehen willst, wie weit man die JVM pruegeln kann:
 
 GitHub: https://github.com/andrestubbe/FastAnimation
-FastGPU: https://github.com/andrestubbe/FastGPU
 FastTween: https://github.com/andrestubbe/FastTween
+FastGPU: https://github.com/andrestubbe/FastGPU
 Full ecosystem: https://github.com/andrestubbe
 
-#FastJava #FastGPU #FastAnimation #FastTween #ZeroGC #JNI #CreativeCoding #JavaPerformance #TokyoNight
+#FastJava #FastAnimation #FastTween #FastGPU #ZeroGC #JNI #CreativeCoding #JavaPerformance #TokyoNight
