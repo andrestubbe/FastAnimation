@@ -1,0 +1,50 @@
+#version 450
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer ParamsBuf {
+    vec4 params[]; // x: radius, y: speed, z: tilt, w: ecc
+};
+
+layout(std430, binding = 1) buffer StateBuf {
+    vec4 posVelA[]; // x: posX, y: posY, z: posZ, w: velX
+    vec4 posVelB[]; // x: velY, y: velZ, z: angle, w: targetSphereIdx
+};
+
+layout(std430, binding = 2) readonly buffer SphereBuf {
+    vec4 spheres[]; // x: sphereX, y: sphereY, z: sphereZ, w: scale
+};
+
+layout(std430, binding = 3) readonly buffer UniformBuf {
+    vec4 timeAndCam; // x: cosY, y: sinY, z: cosP, w: sinP
+};
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= 100000) return;
+
+    vec4 p = params[id];
+    vec4 pva = posVelA[id];
+    vec4 pvb = posVelB[id];
+
+    float angle = pvb.z + p.y;
+    int sIdx = int(pvb.w);
+    vec4 sph = spheres[sIdx];
+
+    float rad = p.x * sph.w;
+    float tilt = p.z;
+    float ecc = p.w;
+
+    float ox = cos(angle) * rad * ecc;
+    float oy = sin(angle) * cos(tilt) * rad;
+    float oz = sin(angle) * sin(tilt) * rad;
+
+    vec3 target = sph.xyz + vec3(ox, oy, oz);
+    vec3 pos = pva.xyz;
+    vec3 vel = vec3(pva.w, pvb.x, pvb.y);
+
+    vel = (vel + (target - pos) * 0.025) * 0.92;
+    pos += vel;
+
+    posVelA[id] = vec4(pos, vel.x);
+    posVelB[id] = vec4(vel.yz, angle, float(sIdx));
+}
