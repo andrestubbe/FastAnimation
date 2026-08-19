@@ -16,15 +16,14 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Cinematic 3D FastTween Realm + 50,000 Gentle Orbit Particles.
+ * FastAnimation Demo 2: Volumetric 3D FastTween Realm + 50,000 Multi-Scale Star Dust Particles.
  *
  * <p>Features:
  * <ul>
- *   <li>300 Independent spheres moving via original FastTween Quad-InOut axis keyframes</li>
- *   <li>Subtle, gentle BOIDS separation offset keeping the spheres clean and dispersed</li>
- *   <li>50,000 slow, graceful orbit particles smoothly floating around the spheres</li>
+ *   <li>300 Independent spheres moving via FastTween Quad-InOut axis keyframes with doubled separation</li>
+ *   <li>50,000 Volumetric depth-scaled star particles (up to 5x5 soft luminous disks + core)</li>
+ *   <li>Fluid gravitational follow physics with natural momentum drag & non-linear orbit spirals</li>
  *   <li>Gentle 3D orbital camera rotation (Yaw + Pitch matrix)</li>
- *   <li>Sub-pixel Gaussian bloom & glow flare kernel (3x3 luminous cross-splat)</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
@@ -57,11 +56,15 @@ public class ParticleTimelineDemo extends Canvas {
     private final float[] posX = new float[PARTICLE_COUNT];
     private final float[] posY = new float[PARTICLE_COUNT];
     private final float[] posZ = new float[PARTICLE_COUNT];
+    private final float[] velX = new float[PARTICLE_COUNT];
+    private final float[] velY = new float[PARTICLE_COUNT];
+    private final float[] velZ = new float[PARTICLE_COUNT];
     private final int[] targetBallIndex = new int[PARTICLE_COUNT];
     private final float[] orbitRadius = new float[PARTICLE_COUNT];
     private final float[] orbitAngle = new float[PARTICLE_COUNT];
     private final float[] orbitSpeed = new float[PARTICLE_COUNT];
     private final float[] orbitTilt = new float[PARTICLE_COUNT];
+    private final float[] particleBaseSize = new float[PARTICLE_COUNT];
 
     private BufferedImage screenBuffer;
     private int[] pixels;
@@ -84,7 +87,7 @@ public class ParticleTimelineDemo extends Canvas {
     private void init3DScene() {
         FastAnimation.setHeartbeatMode(HeartbeatMode.NATIVE_VSYNC);
 
-        // 1. Initialize 300 Spheres with original FastTween Axis Loops
+        // 1. Initialize 300 Spheres with FastTween Axis Loops
         for (int i = 0; i < BALL_COUNT; i++) {
             Ball b = new Ball();
             b.x = (float) ((Math.random() * CUBE_SIZE * 2) - CUBE_SIZE);
@@ -99,16 +102,26 @@ public class ParticleTimelineDemo extends Canvas {
             animateScale(b);
         }
 
-        // 2. Initialize 50,000 Particles (Slower, gentle orbits)
+        // 2. Initialize 50,000 Particles with varying physical base sizes
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
             targetBallIndex[i] = bIdx;
 
-            orbitRadius[i] = 16.0f + r.nextFloat() * 85.0f;
+            orbitRadius[i] = 20.0f + r.nextFloat() * 110.0f;
             orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
-            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.006f + r.nextFloat() * 0.015f); // Much slower orbit speed
+            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.005f + r.nextFloat() * 0.012f);
             orbitTilt[i] = r.nextFloat() * (float) Math.PI;
+
+            // Varied particle sizes: mostly dust (1.0), some bright star sparks (2.5 - 4.5)
+            float sRoll = r.nextFloat();
+            if (sRoll > 0.94f) {
+                particleBaseSize[i] = 3.5f + r.nextFloat() * 2.0f; // Big glowing star cores
+            } else if (sRoll > 0.70f) {
+                particleBaseSize[i] = 2.0f + r.nextFloat() * 1.2f; // Medium nodes
+            } else {
+                particleBaseSize[i] = 1.0f + r.nextFloat() * 0.6f; // Fine dust
+            }
 
             Ball b = balls.get(bIdx);
             posX[i] = b.x;
@@ -118,7 +131,7 @@ public class ParticleTimelineDemo extends Canvas {
     }
 
     // ---------------------------------------------------------
-    // Original FastTween Axis Animations
+    // FastTween Axis Animations
     // ---------------------------------------------------------
     private void animateAxisX(Ball b) {
         float current = b.x;
@@ -172,7 +185,7 @@ public class ParticleTimelineDemo extends Canvas {
     // Gentle Local Repulsion Offset (Keeps spheres separated smoothly)
     // ---------------------------------------------------------
     private void updateGentleSeparation() {
-        float sepDist = 180.0f; // Doubled separation distance
+        float sepDist = 180.0f;
         for (int i = 0; i < BALL_COUNT; i++) {
             Ball b = balls.get(i);
             float sx = 0, sy = 0, sz = 0;
@@ -189,7 +202,7 @@ public class ParticleTimelineDemo extends Canvas {
                 if (distSq > 0 && distSq < sepDist * sepDist) {
                     float d = (float) Math.sqrt(distSq);
                     float force = (sepDist - d) / sepDist;
-                    sx += (dx / d) * force * 2.4f; // Doubled repulsion force
+                    sx += (dx / d) * force * 2.4f;
                     sy += (dy / d) * force * 2.4f;
                     sz += (dz / d) * force * 2.4f;
                 }
@@ -230,7 +243,7 @@ public class ParticleTimelineDemo extends Canvas {
                 updateGentleSeparation();
 
                 // 2. Slow, graceful 3D Camera Orbit
-                camYaw += 0.002f; // Slower camera pan
+                camYaw += 0.002f;
                 camPitch = (float) Math.sin(camYaw * 0.5f) * 0.2f;
 
                 float cosY = (float) Math.cos(camYaw);
@@ -241,18 +254,18 @@ public class ParticleTimelineDemo extends Canvas {
                 // 3. Crisp Black Screen Clear
                 java.util.Arrays.fill(pixels, 0);
 
-                // 4. Slow Orbit Particles Update & Splatting
+                // 4. Volumetric Orbit Particles Update & Multi-Pixel Glow Splatting
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
 
                     orbitAngle[i] += orbitSpeed[i];
 
-                    // Probabilistic migration (0.15% chance to drift to another sphere)
-                    if (r.nextInt(650) == 0) {
+                    // Probabilistic migration (0.12% chance to drift to another sphere)
+                    if (r.nextInt(800) == 0) {
                         targetBallIndex[i] = r.nextInt(BALL_COUNT);
-                        orbitRadius[i] = 16.0f + r.nextFloat() * 85.0f;
-                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.006f + r.nextFloat() * 0.015f);
+                        orbitRadius[i] = 20.0f + r.nextFloat() * 110.0f;
+                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.005f + r.nextFloat() * 0.012f);
                     }
 
                     float radius = orbitRadius[i] * parent.radiusScale;
@@ -266,10 +279,14 @@ public class ParticleTimelineDemo extends Canvas {
                     float targetY = parent.y + parent.boidOffsetY + oy;
                     float targetZ = parent.z + parent.boidOffsetZ + oz;
 
-                    // Smooth, gentle drift toward target position
-                    posX[i] += (targetX - posX[i]) * 0.04f; // Slower follow dampening
-                    posY[i] += (targetY - posY[i]) * 0.04f;
-                    posZ[i] += (targetZ - posZ[i]) * 0.04f;
+                    // Physics momentum with smooth damping (eliminates artificial linear snapping)
+                    velX[i] = (velX[i] + (targetX - posX[i]) * 0.035f) * 0.90f;
+                    velY[i] = (velY[i] + (targetY - posY[i]) * 0.035f) * 0.90f;
+                    velZ[i] = (velZ[i] + (targetZ - posZ[i]) * 0.035f) * 0.90f;
+
+                    posX[i] += velX[i];
+                    posY[i] += velY[i];
+                    posZ[i] += velZ[i];
 
                     // Camera 3D Rotation Transform (Yaw + Pitch)
                     float rx = posX[i] * cosY - posZ[i] * sinY;
@@ -285,20 +302,45 @@ public class ParticleTimelineDemo extends Canvas {
                     int sx = (int) (WIDTH / 2f + rx * scale);
                     int sy = (int) (HEIGHT / 2f + ry * scale);
 
-                    if (sx >= 1 && sx < WIDTH - 1 && sy >= 1 && sy < HEIGHT - 1) {
-                        int coreIntensity = (int) (Math.min(1.0f, scale * 1.6f) * 255);
-                        int glowIntensity = coreIntensity >> 2;
+                    float pSize = particleBaseSize[i] * scale;
 
+                    if (sx >= 2 && sx < WIDTH - 2 && sy >= 2 && sy < HEIGHT - 2) {
+                        int coreIntensity = (int) (Math.min(1.0f, scale * 1.7f) * 255);
                         int centerIdx = sy * WIDTH + sx;
 
-                        int cur = pixels[centerIdx] & 0xFF;
-                        int bld = Math.min(255, cur + coreIntensity);
-                        pixels[centerIdx] = (bld << 16) | (bld << 8) | bld;
+                        // Center core
+                        blendPixel(centerIdx, coreIntensity);
 
-                        blendPixel(centerIdx - 1, glowIntensity);
-                        blendPixel(centerIdx + 1, glowIntensity);
-                        blendPixel(centerIdx - WIDTH, glowIntensity);
-                        blendPixel(centerIdx + WIDTH, glowIntensity);
+                        // If particle is larger or closer to camera, splat volumetric 3x3 or 5x5 disk
+                        if (pSize > 1.8f) {
+                            int halo1 = coreIntensity >> 1; // 50% brightness inner halo
+                            int halo2 = coreIntensity >> 3; // 12% outer flare
+
+                            // 3x3 inner diamond
+                            blendPixel(centerIdx - 1, halo1);
+                            blendPixel(centerIdx + 1, halo1);
+                            blendPixel(centerIdx - WIDTH, halo1);
+                            blendPixel(centerIdx + WIDTH, halo1);
+
+                            if (pSize > 3.0f) {
+                                // 5x5 outer cross for massive star nodes
+                                blendPixel(centerIdx - 2, halo2);
+                                blendPixel(centerIdx + 2, halo2);
+                                blendPixel(centerIdx - WIDTH * 2, halo2);
+                                blendPixel(centerIdx + WIDTH * 2, halo2);
+                                blendPixel(centerIdx - WIDTH - 1, halo2);
+                                blendPixel(centerIdx - WIDTH + 1, halo2);
+                                blendPixel(centerIdx + WIDTH - 1, halo2);
+                                blendPixel(centerIdx + WIDTH + 1, halo2);
+                            }
+                        } else {
+                            // Sub-pixel 3x3 faint flare for small dust
+                            int glow = coreIntensity >> 3;
+                            blendPixel(centerIdx - 1, glow);
+                            blendPixel(centerIdx + 1, glow);
+                            blendPixel(centerIdx - WIDTH, glow);
+                            blendPixel(centerIdx + WIDTH, glow);
+                        }
                     }
                 }
 
@@ -345,13 +387,13 @@ public class ParticleTimelineDemo extends Canvas {
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres (FastTween) + 50,000 Particles | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Volumetric Stars | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-Graceful").start();
+        }, "Render-Loop-Volumetric").start();
     }
 
     private void blendPixel(int index, int add) {
@@ -365,7 +407,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Volumetric Stars");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
