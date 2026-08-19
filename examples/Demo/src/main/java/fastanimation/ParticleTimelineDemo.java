@@ -17,14 +17,13 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * FastAnimation Demo 2: Tokyo Night Synthwave Realm + Chaotic Stardust Fields & Z-Buffer.
+ * FastAnimation Demo 2: Tokyo Night Synthwave Realm + Centered 'RETRO / SYNTH' White Typography Mask & Z-Buffer.
  *
  * <p>Features:
  * <ul>
- *   <li>Wide, expansive particle envelope (up to 240px orbit reach with 3D harmonic turbulence)</li>
- *   <li>Chaotic orbital eccentricities (elliptical trajectories + micro-wobble offsets)</li>
- *   <li>Faster dynamic sphere migration rate (0.35%) giving the swarm constant flow</li>
- *   <li>TokyoNight background canvas & titlebar (#1a1b26) with full Float Z-Buffer</li>
+ *   <li>Pre-rasterized antialiased 2-line center title ("RETRO\nSYNTH") additive white blending mask</li>
+ *   <li>Full per-pixel Float Z-Buffer (Depth Buffer) for 100% correct 3D occlusion between spheres and particles</li>
+ *   <li>300 Spheres + 50,000 Particles running in 3D TokyoNight Synthwave aesthetic</li>
  *   <li>Locked 60 FPS high-precision FastExecution heartbeat</li>
  * </ul>
  */
@@ -38,7 +37,7 @@ public class ParticleTimelineDemo extends Canvas {
     private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
 
-    // Atmospheric Fog Range (Expanded range for clearer visibility)
+    // Atmospheric Fog Range
     private static final float FOG_NEAR = 100f;
     private static final float FOG_FAR = 2400f;
 
@@ -82,6 +81,7 @@ public class ParticleTimelineDemo extends Canvas {
     private BufferedImage screenBuffer;
     private int[] pixels;
     private final float[] zBuffer = new float[WIDTH * HEIGHT];
+    private byte[] textAlphaMask; // Pre-rendered typography mask
     private final JFrame parentFrame;
 
     public ParticleTimelineDemo(JFrame parentFrame) {
@@ -90,12 +90,49 @@ public class ParticleTimelineDemo extends Canvas {
         setIgnoreRepaint(true);
 
         initBuffers();
+        initTextMask();
         init3DScene();
     }
 
     private void initBuffers() {
         screenBuffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         pixels = ((DataBufferInt) screenBuffer.getRaster().getDataBuffer()).getData();
+    }
+
+    private void initTextMask() {
+        textAlphaMask = new byte[WIDTH * HEIGHT];
+        BufferedImage textImg = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = textImg.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        Font font = new Font("Impact", Font.BOLD, 108);
+        g.setFont(font);
+        FontMetrics fm = g.getFontMetrics();
+
+        String line1 = "RETRO";
+        String line2 = "SYNTH";
+
+        int w1 = fm.stringWidth(line1);
+        int w2 = fm.stringWidth(line2);
+
+        int x1 = (WIDTH - w1) / 2;
+        int x2 = (WIDTH - w2) / 2;
+
+        int centerY = HEIGHT / 2;
+        int y1 = centerY - 15;
+        int y2 = centerY + fm.getAscent() - 5;
+
+        g.setColor(Color.WHITE);
+        g.drawString(line1, x1, y1);
+        g.drawString(line2, x2, y2);
+        g.dispose();
+
+        int[] textPixels = ((DataBufferInt) textImg.getRaster().getDataBuffer()).getData();
+        for (int i = 0; i < textPixels.length; i++) {
+            int alpha = (textPixels[i] >>> 24) & 0xFF;
+            textAlphaMask[i] = (byte) alpha;
+        }
     }
 
     private void init3DScene() {
@@ -122,7 +159,6 @@ public class ParticleTimelineDemo extends Canvas {
             int bIdx = i % BALL_COUNT;
             targetBallIndex[i] = bIdx;
 
-            // 2.2x larger orbit radius envelope (40 to 240px)
             orbitRadius[i] = 40.0f + r.nextFloat() * 200.0f;
             orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
             orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.007f + r.nextFloat() * 0.016f);
@@ -331,7 +367,7 @@ public class ParticleTimelineDemo extends Canvas {
                 float cosP = (float) Math.cos(camPitch);
                 float sinP = (float) Math.sin(camPitch);
 
-                // 5. Cinematic Motion Blur Decay (1/3 trail length: ~0.66 retention toward TokyoNight background)
+                // 5. Cinematic Motion Blur Decay
                 int bgR = 26, bgG = 27, bgB = 38;
                 for (int i = 0; i < pixels.length; i++) {
                     int p = pixels[i];
@@ -339,7 +375,6 @@ public class ParticleTimelineDemo extends Canvas {
                     int pg = (p >> 8) & 0xFF;
                     int pb = p & 0xFF;
 
-                    // 1/3 as much motion blur: factor 170 / 256 (~0.66)
                     pr = bgR + (((pr - bgR) * 170) >> 8);
                     pg = bgG + (((pg - bgG) * 170) >> 8);
                     pb = bgB + (((pb - bgB) * 170) >> 8);
@@ -370,7 +405,7 @@ public class ParticleTimelineDemo extends Canvas {
                     if (radius <= 0) continue;
 
                     float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.35f, Math.min(1.0f, fog)); // Softer fog, much higher base visibility
+                    fog = Math.max(0.35f, Math.min(1.0f, fog));
 
                     int rgb = computeRetroColor(bx, by, bz, fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
@@ -402,7 +437,7 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 7. Volumetric Orbit Particles with Wide Chaotic Envelope & Turbulence
+                // 7. Volumetric Orbit Particles
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
                     int bIdx = targetBallIndex[i];
                     Ball parent = balls.get(bIdx);
@@ -410,7 +445,6 @@ public class ParticleTimelineDemo extends Canvas {
                     orbitAngle[i] += orbitSpeed[i];
                     noisePhase[i] += noiseSpeed[i];
 
-                    // Faster migration rate (0.35% chance to wander to another sphere)
                     if (r.nextInt(280) == 0) {
                         targetBallIndex[i] = r.nextInt(BALL_COUNT);
                         orbitRadius[i] = 40.0f + r.nextFloat() * 200.0f;
@@ -422,7 +456,6 @@ public class ParticleTimelineDemo extends Canvas {
                     float tilt = orbitTilt[i];
                     float ecc = orbitEccentricity[i];
 
-                    // Chaotic elliptical orbits with 3D harmonic noise wobble
                     float wobbleX = (float) Math.sin(noisePhase[i]) * 28.0f;
                     float wobbleY = (float) Math.cos(noisePhase[i] * 1.3f) * 28.0f;
                     float wobbleZ = (float) Math.sin(noisePhase[i] * 0.7f) * 28.0f;
@@ -435,7 +468,6 @@ public class ParticleTimelineDemo extends Canvas {
                     float targetY = parent.y + parent.boidOffsetY + oy;
                     float targetZ = parent.z + parent.boidOffsetZ + oz;
 
-                    // Organic fluid follow with momentum
                     velX[i] = (velX[i] + (targetX - posX[i]) * 0.025f) * 0.92f;
                     velY[i] = (velY[i] + (targetY - posY[i]) * 0.025f) * 0.92f;
                     velZ[i] = (velZ[i] + (targetZ - posZ[i]) * 0.025f) * 0.92f;
@@ -450,12 +482,11 @@ public class ParticleTimelineDemo extends Canvas {
                     float ry = posY[i] * cosP - rz * sinP;
                     rz = posY[i] * sinP + rz * cosP;
 
-                    // Perspective Projection
                     float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 1.0f) continue;
 
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.35f, Math.min(1.0f, fog)); // Softer fog, much higher base visibility
+                    fog = Math.max(0.35f, Math.min(1.0f, fog));
 
                     int rgb = computeRetroColor(posX[i], posY[i], posZ[i], fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
@@ -500,20 +531,38 @@ public class ParticleTimelineDemo extends Canvas {
                     }
                 }
 
-                // 8. Present Frame
+                // 8. Additive White Blend for Centered "RETRO / SYNTH" Typography Mask
+                for (int i = 0; i < pixels.length; i++) {
+                    int alpha = textAlphaMask[i] & 0xFF;
+                    if (alpha > 0) {
+                        int p = pixels[i];
+                        int pr = (p >> 16) & 0xFF;
+                        int pg = (p >> 8) & 0xFF;
+                        int pb = p & 0xFF;
+
+                        // Additive white saturation
+                        pr = Math.min(255, pr + alpha);
+                        pg = Math.min(255, pg + alpha);
+                        pb = Math.min(255, pb + alpha);
+
+                        pixels[i] = (pr << 16) | (pg << 8) | pb;
+                    }
+                }
+
+                // 9. Present Frame
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
                 g.dispose();
                 bs.show();
                 Toolkit.getDefaultToolkit().sync();
 
-                // 9. FPS Counter in Window Title
+                // 10. FPS Counter in Window Title
                 frames++;
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (Tokyo Night Synthwave) | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation — 300 Spheres + 50,000 Particles (RETRO SYNTH) | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
@@ -526,7 +575,7 @@ public class ParticleTimelineDemo extends Canvas {
         BufferedImage icon = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = icon.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(new Color(122, 162, 247)); // Pure TokyoNight Electric Blue fill
+        g.setColor(new Color(122, 162, 247));
         g.fillOval(4, 4, 56, 56);
         g.dispose();
         return icon;
@@ -537,7 +586,7 @@ public class ParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (Tokyo Night Synthwave)");
+            JFrame frame = new JFrame("FastAnimation — 300 Spheres + 50,000 Particles (RETRO SYNTH)");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
