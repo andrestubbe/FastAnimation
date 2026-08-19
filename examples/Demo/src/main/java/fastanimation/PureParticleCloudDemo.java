@@ -93,7 +93,7 @@ public class PureParticleCloudDemo extends Canvas {
         new Thread(() -> {
             long lastFpsTime = System.nanoTime();
             int frames = 0;
-            long frameTimeTarget = 1_000_000_000L / 120;
+            long frameTimeTarget = 1_000_000_000L / 60; // Locked 60 FPS target
             long lastRenderTime = System.nanoTime();
             Random r = new Random();
 
