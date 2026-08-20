@@ -2,7 +2,7 @@
 chcp 65001 >nul
 
 echo ==================================================================
-echo 🎬 Converting PNG Frames to 100%% Lossless 60 FPS AVI Video...
+echo Converting PNG Frames to 100%% Lossless 60 FPS AVI Video...
 echo Input:  FastAnimation\docs\render_frames\frame_%%%%05d.png
 echo Output: FastAnimation\docs\ParticleTimeline_Lossless_60fps.avi
 echo ==================================================================
@@ -23,7 +23,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo.
 echo ==================================================================
-echo ✅ Lossless AVI Export Complete:
+echo Lossless AVI Export Complete:
 echo    FastAnimation\docs\ParticleTimeline_Lossless_60fps.avi
 echo ==================================================================
 pause
