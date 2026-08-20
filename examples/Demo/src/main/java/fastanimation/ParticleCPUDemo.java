@@ -1,18 +1,13 @@
 package fastanimation;
 
 import fastanimation.AnimationEngine.HeartbeatMode;
-import fastgpu.DispatchSize;
-import fastgpu.FastGPU;
-import fastgpu.FastGPUBuffer;
-import fastgpu.FastGPUKernel;
-import fastgpu.KernelArgs;
-import fastgpu.KernelLanguage;
 import fasttheme.FastTheme;
 import fasttween.Ease;
 import fasttween.FastTween;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -21,13 +16,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class FastGpuParticleTimelineDemo extends Canvas {
+public class ParticleCPUDemo extends Canvas {
 
     private static final int WIDTH = 1173;
     private static final int HEIGHT = 610;
 
     private static final int BALL_COUNT = 300;
-    private static final int PARTICLE_COUNT = 100_000;
+    private static final int PARTICLE_COUNT = 50_000;
     private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
 
@@ -70,33 +65,34 @@ public class FastGpuParticleTimelineDemo extends Canvas {
 
     private final List<Ball> balls = new ArrayList<>();
 
-    private final float[] particleParams = new float[PARTICLE_COUNT * 4];
-    private final float[] particleState = new float[PARTICLE_COUNT * 8];
+    private final float[] posX = new float[PARTICLE_COUNT];
+    private final float[] posY = new float[PARTICLE_COUNT];
+    private final float[] posZ = new float[PARTICLE_COUNT];
+    private final float[] velX = new float[PARTICLE_COUNT];
+    private final float[] velY = new float[PARTICLE_COUNT];
+    private final float[] velZ = new float[PARTICLE_COUNT];
+    private final int[] targetBallIndex = new int[PARTICLE_COUNT];
+    private final float[] orbitRadius = new float[PARTICLE_COUNT];
+    private final float[] orbitAngle = new float[PARTICLE_COUNT];
+    private final float[] orbitSpeed = new float[PARTICLE_COUNT];
+    private final float[] orbitTilt = new float[PARTICLE_COUNT];
+    private final float[] orbitEccentricity = new float[PARTICLE_COUNT];
+    private final float[] noisePhase = new float[PARTICLE_COUNT];
+    private final float[] noiseSpeed = new float[PARTICLE_COUNT];
     private final float[] particleBaseSize = new float[PARTICLE_COUNT];
-    private final float[] sphereBufferData = new float[BALL_COUNT * 4];
-    private final float[] globalUniforms = new float[16];
 
     private BufferedImage screenBuffer;
     private int[] pixels;
     private final float[] zBuffer = new float[WIDTH * HEIGHT];
     private final JFrame parentFrame;
 
-    private FastGPU gpu;
-    private FastGPUBuffer gpuParamsBuffer;
-    private FastGPUBuffer gpuStateBuffer;
-    private FastGPUBuffer gpuSpheresBuffer;
-    private FastGPUBuffer gpuUniformsBuffer;
-    private FastGPUKernel particlePhysicsKernel;
-    private boolean gpuActive = false;
-
-    public FastGpuParticleTimelineDemo(JFrame parentFrame) {
+    public ParticleCPUDemo(JFrame parentFrame) {
         this.parentFrame = parentFrame;
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setIgnoreRepaint(true);
 
         initBuffers();
         init3DScene();
-        initFastGpuPipeline();
     }
 
     private void initBuffers() {
@@ -124,120 +120,29 @@ public class FastGpuParticleTimelineDemo extends Canvas {
         Random r = new Random(42);
         for (int i = 0; i < PARTICLE_COUNT; i++) {
             int bIdx = i % BALL_COUNT;
-            Ball b = balls.get(bIdx);
+            targetBallIndex[i] = bIdx;
 
-            float orbitRad = 40.0f + r.nextFloat() * 200.0f;
-            float orbitAng = r.nextFloat() * (float) (2 * Math.PI);
-            float orbitSpd = (r.nextBoolean() ? 1 : -1) * (0.007f + r.nextFloat() * 0.016f);
-            float orbitTlt = r.nextFloat() * (float) Math.PI;
-            float orbitEcc = 0.5f + r.nextFloat() * 0.9f;
-            float nPhase = r.nextFloat() * 100f;
-            float nSpeed = 0.01f + r.nextFloat() * 0.03f;
+            orbitRadius[i] = 40.0f + r.nextFloat() * 200.0f;
+            orbitAngle[i] = r.nextFloat() * (float) (2 * Math.PI);
+            orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.007f + r.nextFloat() * 0.016f);
+            orbitTilt[i] = r.nextFloat() * (float) Math.PI;
+            orbitEccentricity[i] = 0.5f + r.nextFloat() * 0.9f;
+            noisePhase[i] = r.nextFloat() * 100f;
+            noiseSpeed[i] = 0.01f + r.nextFloat() * 0.03f;
 
-            float pSize = 1.0f + r.nextFloat() * 0.6f;
             float sRoll = r.nextFloat();
-            if (sRoll > 0.94f) pSize = 3.5f + r.nextFloat() * 2.0f;
-            else if (sRoll > 0.70f) pSize = 2.0f + r.nextFloat() * 1.2f;
-            particleBaseSize[i] = pSize;
+            if (sRoll > 0.94f) {
+                particleBaseSize[i] = 3.5f + r.nextFloat() * 2.0f;
+            } else if (sRoll > 0.70f) {
+                particleBaseSize[i] = 2.0f + r.nextFloat() * 1.2f;
+            } else {
+                particleBaseSize[i] = 1.0f + r.nextFloat() * 0.6f;
+            }
 
-            int pBase = i * 4;
-            particleParams[pBase] = orbitRad;
-            particleParams[pBase + 1] = orbitSpd;
-            particleParams[pBase + 2] = orbitTlt;
-            particleParams[pBase + 3] = orbitEcc;
-
-            int sBase = i * 8;
-            particleState[sBase] = b.x;
-            particleState[sBase + 1] = b.y;
-            particleState[sBase + 2] = b.z;
-            particleState[sBase + 3] = 0;
-            particleState[sBase + 4] = 0;
-            particleState[sBase + 5] = 0;
-            particleState[sBase + 6] = orbitAng;
-            particleState[sBase + 7] = (float) bIdx;
-        }
-    }
-
-    private void initFastGpuPipeline() {
-        try {
-            gpu = FastGPU.openDefault();
-            System.out.println("⚡ FastGPU Engine Connected: Compiling GLSL Particle Physics Compute Kernel...");
-
-            String glslKernel = """
-                    #version 450
-                    layout(local_size_x = 256) in;
-                    
-                    layout(std430, binding = 0) readonly buffer ParamsBuf {
-                        vec4 params[]; // x: radius, y: speed, z: tilt, w: ecc
-                    } bufParams;
-                    
-                    layout(std430, binding = 1) buffer StateBuf {
-                        vec4 stateA[]; // stateA[2*i]: pos.xyz, vel.x | stateA[2*i+1]: vel.yz, angle, sphereIdx
-                    } bufStateA;
-                    
-                    layout(std430, binding = 2) readonly buffer SphereBuf {
-                        vec4 spheres[]; // x: sphereX, y: sphereY, z: sphereZ, w: scale
-                    } bufSpheres;
-                    
-                    layout(std430, binding = 3) readonly buffer UniformBuf {
-                        vec4 timeAndCam; // x: lightPhase, y: ambientPhase
-                    } bufUniforms;
-                    
-                    void main() {
-                        uint id = gl_GlobalInvocationID.x;
-                        if (id >= 100000) return;
-                        
-                        vec4 p = bufParams.params[id];
-                        vec4 pva = bufStateA.stateA[id * 2];
-                        vec4 pvb = bufStateA.stateA[id * 2 + 1];
-                        
-                        float angle = pvb.z + p.y;
-                        int sIdx = int(pvb.w);
-                        vec4 sph = bufSpheres.spheres[sIdx];
-                        
-                        float rad = p.x * sph.w;
-                        float tilt = p.z;
-                        float ecc = p.w;
-                        
-                        float phase = float(id) * 0.05 + angle * 2.0;
-                        float wobbleX = sin(phase) * 28.0;
-                        float wobbleY = cos(phase * 1.3) * 28.0;
-                        float wobbleZ = sin(phase * 0.7) * 28.0;
-                        
-                        float ox = (cos(angle) * rad * ecc) + wobbleX;
-                        float oy = (sin(angle) * cos(tilt) * rad) + wobbleY;
-                        float oz = (sin(angle) * sin(tilt) * rad) + wobbleZ;
-                        
-                        vec3 target = sph.xyz + vec3(ox, oy, oz);
-                        vec3 pos = pva.xyz;
-                        vec3 vel = vec3(pva.w, pvb.x, pvb.y);
-                        
-                        vel = (vel + (target - pos) * 0.025) * 0.92;
-                        pos += vel;
-                        
-                        bufStateA.stateA[id * 2] = vec4(pos, vel.x);
-                        bufStateA.stateA[id * 2 + 1] = vec4(vel.yz, angle, float(sIdx));
-                    }
-                    """;
-
-            particlePhysicsKernel = gpu.compile("particle_step", glslKernel, KernelLanguage.GLSL_COMPUTE);
-            gpuParamsBuffer = gpu.allocFloatBuffer(PARTICLE_COUNT * 4);
-            gpuStateBuffer = gpu.allocFloatBuffer(PARTICLE_COUNT * 8);
-            gpuSpheresBuffer = gpu.allocFloatBuffer(BALL_COUNT * 4);
-            gpuUniformsBuffer = gpu.allocFloatBuffer(16);
-
-            gpuParamsBuffer.upload(particleParams);
-            gpuStateBuffer.upload(particleState);
-
-            gpuActive = true;
-            System.out.println("==================================================================");
-            System.out.println("⚡ FastGPU HARDWARE COMPUTE PIPELINE INITIALIZED (100,000 Particles)");
-            System.out.println("Vulkan Compute Pipeline: READY");
-            System.out.println("==================================================================");
-        } catch (Throwable t) {
-            System.err.println("❌ FastGPU Hardware Error: " + t.getMessage());
-            System.err.println("Note: FastGPU requires Vulkan SDK / glslc to compile GLSL shaders directly to SPIR-V.");
-            gpuActive = false;
+            Ball b = balls.get(bIdx);
+            posX[i] = b.x;
+            posY[i] = b.y;
+            posZ[i] = b.z;
         }
     }
 
@@ -365,6 +270,7 @@ public class FastGpuParticleTimelineDemo extends Canvas {
             int frames = 0;
             long frameTimeTarget = 1_000_000_000L / 60;
             long lastRenderTime = System.nanoTime();
+            Random r = new Random();
 
             float camYaw = 0f;
             float camPitch = 0f;
@@ -422,34 +328,27 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                 }
                 Arrays.fill(zBuffer, Float.MAX_VALUE);
 
-                for (int b = 0; b < BALL_COUNT; b++) {
-                    Ball ball = balls.get(b);
-                    float bx = ball.x + ball.boidOffsetX;
-                    float by = ball.y + ball.boidOffsetY;
-                    float bz = ball.z + ball.boidOffsetZ;
+                for (Ball b : balls) {
+                    float bx = b.x + b.boidOffsetX;
+                    float by = b.y + b.boidOffsetY;
+                    float bz = b.z + b.boidOffsetZ;
 
-                    int sBase = b * 4;
-                    sphereBufferData[sBase] = bx;
-                    sphereBufferData[sBase + 1] = by;
-                    sphereBufferData[sBase + 2] = bz;
-                    sphereBufferData[sBase + 3] = ball.radiusScale;
-
-                    ball.rotX = bx * cosY - bz * sinY;
+                    b.rotX = bx * cosY - bz * sinY;
                     float rz = bx * sinY + bz * cosY;
-                    ball.rotY = by * cosP - rz * sinP;
-                    ball.rotZ = by * sinP + rz * cosP;
-                    ball.zDepth = FOV + ball.rotZ + CUBE_SIZE;
+                    b.rotY = by * cosP - rz * sinP;
+                    b.rotZ = by * sinP + rz * cosP;
+                    b.zDepth = FOV + b.rotZ + CUBE_SIZE;
 
-                    if (ball.zDepth <= 1.0f) continue;
+                    if (b.zDepth <= 1.0f) continue;
 
-                    float scale = FOV / ball.zDepth;
-                    int sx = (int) (WIDTH / 2f + ball.rotX * scale);
-                    int sy = (int) (HEIGHT / 2f + ball.rotY * scale);
-                    int radius = (int) (48f * scale * ball.radiusScale);
+                    float scale = FOV / b.zDepth;
+                    int sx = (int) (WIDTH / 2f + b.rotX * scale);
+                    int sy = (int) (HEIGHT / 2f + b.rotY * scale);
+                    int radius = (int) (48f * scale * b.radiusScale);
 
                     if (radius <= 0) continue;
 
-                    float fog = 1.0f - ((ball.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
+                    float fog = 1.0f - ((b.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.35f, Math.min(1.0f, fog));
 
                     int rgb = computeRetroColor(bx, by, bz, fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
@@ -470,7 +369,7 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                             int distSq = dx * dx + dySq;
                             if (distSq <= radSq) {
                                 float dz = (float) Math.sqrt(radSq - distSq) / scale;
-                                float pixelZ = ball.zDepth - dz;
+                                float pixelZ = b.zDepth - dz;
 
                                 int idx = rowOffset + px;
                                 if (pixelZ < zBuffer[idx]) {
@@ -488,71 +387,48 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     sphereBaseColors[b] = computeRetroColor(ball.x + ball.boidOffsetX, ball.y + ball.boidOffsetY, ball.z + ball.boidOffsetZ, 1.0f, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
                 }
 
-                if (gpuActive) {
-                    globalUniforms[0] = cosY;
-                    globalUniforms[1] = sinY;
-                    globalUniforms[2] = cosP;
-                    globalUniforms[3] = sinP;
-                    gpuUniformsBuffer.upload(globalUniforms);
-                    gpuSpheresBuffer.upload(sphereBufferData);
-
-                    gpu.dispatch(
-                            particlePhysicsKernel,
-                            DispatchSize.of1D(PARTICLE_COUNT / 256 + 1),
-                            KernelArgs.of(gpuParamsBuffer, gpuStateBuffer, gpuSpheresBuffer, gpuUniformsBuffer)
-                    );
-                    gpuStateBuffer.download(particleState);
-                }
-
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
-                    int sBase = i * 8;
-                    float px, py, pz;
-                    int bIdx;
+                    int bIdx = targetBallIndex[i];
+                    Ball parent = balls.get(bIdx);
 
-                    if (gpuActive) {
-                        px = particleState[sBase];
-                        py = particleState[sBase + 1];
-                        pz = particleState[sBase + 2];
-                        bIdx = (int) particleState[sBase + 7];
-                    } else {
-                        bIdx = (int) particleState[sBase + 7];
-                        Ball parent = balls.get(bIdx);
-                        float angle = particleState[sBase + 6] + particleParams[i * 4 + 1];
-                        particleState[sBase + 6] = angle;
+                    orbitAngle[i] += orbitSpeed[i];
+                    noisePhase[i] += noiseSpeed[i];
 
-                        float rad = particleParams[i * 4] * parent.radiusScale;
-                        float tilt = particleParams[i * 4 + 2];
-                        float ecc = particleParams[i * 4 + 3];
-
-                        float ox = fastCos(angle) * rad * ecc;
-                        float oy = fastSin(angle) * fastCos(tilt) * rad;
-                        float oz = fastSin(angle) * fastSin(tilt) * rad;
-
-                        float targetX = parent.x + parent.boidOffsetX + ox;
-                        float targetY = parent.y + parent.boidOffsetY + oy;
-                        float targetZ = parent.z + parent.boidOffsetZ + oz;
-
-                        float vx = (particleState[sBase + 3] + (targetX - particleState[sBase]) * 0.025f) * 0.92f;
-                        float vy = (particleState[sBase + 4] + (targetY - particleState[sBase + 1]) * 0.025f) * 0.92f;
-                        float vz = (particleState[sBase + 5] + (targetZ - particleState[sBase + 2]) * 0.025f) * 0.92f;
-
-                        particleState[sBase + 3] = vx;
-                        particleState[sBase + 4] = vy;
-                        particleState[sBase + 5] = vz;
-
-                        px = particleState[sBase] + vx;
-                        py = particleState[sBase + 1] + vy;
-                        pz = particleState[sBase + 2] + vz;
-
-                        particleState[sBase] = px;
-                        particleState[sBase + 1] = py;
-                        particleState[sBase + 2] = pz;
+                    if (r.nextInt(280) == 0) {
+                        targetBallIndex[i] = r.nextInt(BALL_COUNT);
+                        orbitRadius[i] = 40.0f + r.nextFloat() * 200.0f;
+                        orbitSpeed[i] = (r.nextBoolean() ? 1 : -1) * (0.007f + r.nextFloat() * 0.016f);
+                        orbitEccentricity[i] = 0.5f + r.nextFloat() * 0.9f;
                     }
 
-                    float rx = px * cosY - pz * sinY;
-                    float rz = px * sinY + pz * cosY;
-                    float ry = py * cosP - rz * sinP;
-                    rz = py * sinP + rz * cosP;
+                    float radius = orbitRadius[i] * parent.radiusScale;
+                    float tilt = orbitTilt[i];
+                    float ecc = orbitEccentricity[i];
+
+                    float wobbleX = fastSin(noisePhase[i]) * 28.0f;
+                    float wobbleY = fastCos(noisePhase[i] * 1.3f) * 28.0f;
+                    float wobbleZ = fastSin(noisePhase[i] * 0.7f) * 28.0f;
+
+                    float ox = (fastCos(orbitAngle[i]) * radius * ecc) + wobbleX;
+                    float oy = (fastSin(orbitAngle[i]) * fastCos(tilt) * radius) + wobbleY;
+                    float oz = (fastSin(orbitAngle[i]) * fastSin(tilt) * radius) + wobbleZ;
+
+                    float targetX = parent.x + parent.boidOffsetX + ox;
+                    float targetY = parent.y + parent.boidOffsetY + oy;
+                    float targetZ = parent.z + parent.boidOffsetZ + oz;
+
+                    velX[i] = (velX[i] + (targetX - posX[i]) * 0.025f) * 0.92f;
+                    velY[i] = (velY[i] + (targetY - posY[i]) * 0.025f) * 0.92f;
+                    velZ[i] = (velZ[i] + (targetZ - posZ[i]) * 0.025f) * 0.92f;
+
+                    posX[i] += velX[i];
+                    posY[i] += velY[i];
+                    posZ[i] += velZ[i];
+
+                    float rx = posX[i] * cosY - posZ[i] * sinY;
+                    float rz = posX[i] * sinY + posZ[i] * cosY;
+                    float ry = posY[i] * cosP - rz * sinP;
+                    rz = posY[i] * sinP + rz * cosP;
 
                     float zDepth = FOV + rz + CUBE_SIZE;
                     if (zDepth <= 1.0f) continue;
@@ -560,7 +436,7 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.35f, Math.min(1.0f, fog));
 
-                    int baseColor = sphereBaseColors[bIdx % BALL_COUNT];
+                    int baseColor = sphereBaseColors[bIdx];
                     int sr = (baseColor >> 16) & 0xFF;
                     int sg = (baseColor >> 8) & 0xFF;
                     int sb = baseColor & 0xFF;
@@ -590,16 +466,16 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                         int minY = Math.max(0, sy - rad);
                         int maxY = Math.min(HEIGHT - 1, sy + rad);
 
-                        for (int rpy = minY; rpy <= maxY; rpy++) {
-                            int dy = rpy - sy;
+                        for (int py = minY; py <= maxY; py++) {
+                            int dy = py - sy;
                             int dySq = dy * dy;
-                            int rowOffset = rpy * WIDTH;
+                            int rowOffset = py * WIDTH;
 
-                            for (int rpx = minX; rpx <= maxX; rpx++) {
-                                int dx = rpx - sx;
+                            for (int px = minX; px <= maxX; px++) {
+                                int dx = px - sx;
                                 int distSq = dx * dx + dySq;
                                 if (distSq <= radSq) {
-                                    int idx = rowOffset + rpx;
+                                    int idx = rowOffset + px;
                                     if (zDepth < zBuffer[idx]) {
                                         zBuffer[idx] = zDepth;
                                         pixels[idx] = rgb;
@@ -620,15 +496,14 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                 long now = System.nanoTime();
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
-                    String engineTag = gpuActive ? "FastGPU Vulkan/GLSL Compute" : "FastJava Host Pipeline";
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation + FastTween + FastGPU — 100,000 Particles (" + engineTag + ") | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation + FastGPU — 300 Spheres + 50,000 Particles | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
                 }
             }
-        }, "Render-Loop-FastGPU").start();
+        }, "Render-Loop-UltraFast").start();
     }
 
     private static BufferedImage createRoundIcon() {
@@ -646,13 +521,13 @@ public class FastGpuParticleTimelineDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation + FastTween + FastGPU — 100,000 Particles");
+            JFrame frame = new JFrame("FastAnimation + FastGPU — 300 Spheres + 50,000 Particles");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
             frame.setIconImage(createRoundIcon());
 
-            FastGpuParticleTimelineDemo demo = new FastGpuParticleTimelineDemo(frame);
+            ParticleCPUDemo demo = new ParticleCPUDemo(frame);
             frame.add(demo);
             frame.pack();
             frame.setLocationRelativeTo(null);

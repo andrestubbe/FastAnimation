@@ -15,7 +15,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo Running FastGPU Particle Timeline Demo (100,000 Particles)...
 cd examples\Demo
-call mvn compile exec:java -Dexec.mainClass="fastanimation.FastGpuParticleTimelineDemo" -q
+call mvn compile exec:java -Dexec.mainClass="fastanimation.ParticleGPUDemo" -q
 if %ERRORLEVEL% NEQ 0 (
     echo Demo failed.
     pause
