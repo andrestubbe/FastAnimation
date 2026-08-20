@@ -607,6 +607,11 @@ public class ParticleGPURecorder {
 
     public static void main(String[] args) {
         File outputDir = new File("docs/render_frames");
+        if (!outputDir.exists() && new File("../docs").exists()) {
+            outputDir = new File("../docs/render_frames");
+        } else if (!outputDir.exists() && new File("../../docs").exists()) {
+            outputDir = new File("../../docs/render_frames");
+        }
         ParticleGPURecorder recorder = new ParticleGPURecorder();
         recorder.record(outputDir);
     }
