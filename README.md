@@ -170,7 +170,7 @@ Add the JitPack repository and the dependency to your `pom.xml`:
 ```
 
 > **Note on FastGPU Integration:**
-> FastGPU is completely **optional**. For high-density particle simulations and hardware compute workloads (see `ParticleTimelineDemo`), FastGPU can be paired with FastAnimation to offload parallel 3D matrix math, depth buffering, and color shaders directly to GPU compute pipelines while FastAnimation handles timeline orchestration.
+> FastGPU is completely **optional**. For high-density particle simulations and hardware compute workloads (see `ParticleCPUDemo` for CPU-only and `ParticleGPUDemo` for Vulkan Compute), FastGPU can be paired with FastAnimation to offload parallel 3D matrix math and particle physics directly to GPU compute pipelines while FastAnimation handles timeline orchestration.
 
 ### Option 2: Gradle (via JitPack)
 
