@@ -255,7 +255,7 @@ public class ParticleGPUDemo extends Canvas {
 
             gpuActive = true;
             System.out.println("==================================================================");
-            System.out.println("⚡ FastGPU HARDWARE COMPUTE PIPELINE INITIALIZED (50,000 Particles)");
+            System.out.println("⚡ FastGPU HARDWARE COMPUTE PIPELINE INITIALIZED (" + PARTICLE_COUNT + " Particles)");
             System.out.println("Vulkan Compute Pipeline: READY (Compact Download Optimization Active)");
             System.out.println("==================================================================");
         } catch (Throwable t) {
