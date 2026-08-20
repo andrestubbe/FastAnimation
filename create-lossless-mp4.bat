@@ -13,7 +13,7 @@ if not exist "docs\render_frames\frame_00001.png" (
     exit /b 1
 )
 
-ffmpeg -y -framerate 60 -i "docs\render_frames\frame_%%05d.png" -c:v libx264 -crf 0 -preset veryslow -pix_fmt yuv420p "docs\ParticleTimeline_Lossless_60fps.mp4"
+ffmpeg -y -framerate 60 -i "docs\render_frames\frame_%%05d.png" -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -c:v libx264 -crf 0 -preset veryslow -pix_fmt yuv420p "docs\ParticleTimeline_Lossless_60fps.mp4"
 
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] FFmpeg conversion failed.
