@@ -183,11 +183,11 @@ public class ParticleGPUDemo extends Canvas {
                     } bufSpheres;
                     
                     layout(std430, binding = 3) readonly buffer UniformBuf {
-                        vec4 timeAndCam;
+                        vec4 timeAndCam; // x: cosY, y: sinY, z: cosP, w: sinP
                     } bufUniforms;
                     
                     layout(std430, binding = 4) writeonly buffer OutputBuf {
-                        vec4 compactPos[]; // x: posX, y: posY, z: posZ, w: sphereIdx (packed compact output)
+                        vec4 screenData[]; // x: sx, y: sy, z: zDepth, w: sphereIdx
                     } bufOutput;
                     
                     void main() {
@@ -224,7 +224,24 @@ public class ParticleGPUDemo extends Canvas {
                         
                         bufStateA.stateA[id * 2] = vec4(pos, vel.x);
                         bufStateA.stateA[id * 2 + 1] = vec4(vel.yz, angle, float(sIdx));
-                        bufOutput.compactPos[id] = vec4(pos, float(sIdx));
+                        
+                        // GPU Camera Transform & Projection
+                        float cosY = bufUniforms.timeAndCam.x;
+                        float sinY = bufUniforms.timeAndCam.y;
+                        float cosP = bufUniforms.timeAndCam.z;
+                        float sinP = bufUniforms.timeAndCam.w;
+                        
+                        float rx = pos.x * cosY - pos.z * sinY;
+                        float rz = pos.x * sinY + pos.z * cosY;
+                        float ry = pos.y * cosP - rz * sinP;
+                        rz = pos.y * sinP + rz * cosP;
+                        
+                        float zDepth = 450.0 + rz + 600.0;
+                        float scale = 450.0 / zDepth;
+                        float sx = 1173.0 / 2.0 + rx * scale;
+                        float sy = 610.0 / 2.0 + ry * scale;
+                        
+                        bufOutput.screenData[id] = vec4(sx, sy, zDepth, float(sIdx));
                     }
                     """;
 
@@ -514,58 +531,13 @@ public class ParticleGPUDemo extends Canvas {
                 }
 
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
-                    float px, py, pz;
-                    int bIdx;
+                    int cBase = i * 4;
+                    int sx = (int) compactOutputData[cBase];
+                    int sy = (int) compactOutputData[cBase + 1];
+                    float zDepth = compactOutputData[cBase + 2];
+                    int bIdx = (int) compactOutputData[cBase + 3];
 
-                    if (gpuActive) {
-                        int cBase = i * 4;
-                        px = compactOutputData[cBase];
-                        py = compactOutputData[cBase + 1];
-                        pz = compactOutputData[cBase + 2];
-                        bIdx = (int) compactOutputData[cBase + 3];
-                    } else {
-                        int sBase = i * 8;
-                        bIdx = (int) particleState[sBase + 7];
-                        Ball parent = balls.get(bIdx);
-                        float angle = particleState[sBase + 6] + particleParams[i * 4 + 1];
-                        particleState[sBase + 6] = angle;
-
-                        float rad = particleParams[i * 4] * parent.radiusScale;
-                        float tilt = particleParams[i * 4 + 2];
-                        float ecc = particleParams[i * 4 + 3];
-
-                        float ox = fastCos(angle) * rad * ecc;
-                        float oy = fastSin(angle) * fastCos(tilt) * rad;
-                        float oz = fastSin(angle) * fastSin(tilt) * rad;
-
-                        float targetX = parent.x + parent.boidOffsetX + ox;
-                        float targetY = parent.y + parent.boidOffsetY + oy;
-                        float targetZ = parent.z + parent.boidOffsetZ + oz;
-
-                        float vx = (particleState[sBase + 3] + (targetX - particleState[sBase]) * 0.025f) * 0.92f;
-                        float vy = (particleState[sBase + 4] + (targetY - particleState[sBase + 1]) * 0.025f) * 0.92f;
-                        float vz = (particleState[sBase + 5] + (targetZ - particleState[sBase + 2]) * 0.025f) * 0.92f;
-
-                        particleState[sBase + 3] = vx;
-                        particleState[sBase + 4] = vy;
-                        particleState[sBase + 5] = vz;
-
-                        px = particleState[sBase] + vx;
-                        py = particleState[sBase + 1] + vy;
-                        pz = particleState[sBase + 2] + vz;
-
-                        particleState[sBase] = px;
-                        particleState[sBase + 1] = py;
-                        particleState[sBase + 2] = pz;
-                    }
-
-                    float rx = px * cosY - pz * sinY;
-                    float rz = px * sinY + pz * cosY;
-                    float ry = py * cosP - rz * sinP;
-                    rz = py * sinP + rz * cosP;
-
-                    float zDepth = FOV + rz + CUBE_SIZE;
-                    if (zDepth <= 1.0f) continue;
+                    if (zDepth <= 1.0f || sx < 0 || sx >= WIDTH || sy < 0 || sy >= HEIGHT) continue;
 
                     float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                     fog = Math.max(0.35f, Math.min(1.0f, fog));
@@ -579,44 +551,10 @@ public class ParticleGPUDemo extends Canvas {
                     int cb = (int) (38 + (sb - 38) * fog);
                     int rgb = (cr << 16) | (cg << 8) | cb;
 
-                    float scale = FOV / zDepth;
-                    int sx = (int) (WIDTH / 2f + rx * scale);
-                    int sy = (int) (HEIGHT / 2f + ry * scale);
-
-                    float pSize = particleBaseSize[i] * scale;
-                    int rad = (int) Math.max(1, pSize);
-                    if (rad <= 1) {
-                        if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
-                            int idx = sy * WIDTH + sx;
-                            if (zDepth < zBuffer[idx]) {
-                                zBuffer[idx] = zDepth;
-                                pixels[idx] = rgb;
-                            }
-                        }
-                    } else {
-                        int radSq = rad * rad;
-                        int minX = Math.max(0, sx - rad);
-                        int maxX = Math.min(WIDTH - 1, sx + rad);
-                        int minY = Math.max(0, sy - rad);
-                        int maxY = Math.min(HEIGHT - 1, sy + rad);
-
-                        for (int rpy = minY; rpy <= maxY; rpy++) {
-                            int dy = rpy - sy;
-                            int dySq = dy * dy;
-                            int rowOffset = rpy * WIDTH;
-
-                            for (int rpx = minX; rpx <= maxX; rpx++) {
-                                int dx = rpx - sx;
-                                int distSq = dx * dx + dySq;
-                                if (distSq <= radSq) {
-                                    int idx = rowOffset + rpx;
-                                    if (zDepth < zBuffer[idx]) {
-                                        zBuffer[idx] = zDepth;
-                                        pixels[idx] = rgb;
-                                    }
-                                }
-                            }
-                        }
+                    int idx = sy * WIDTH + sx;
+                    if (zDepth < zBuffer[idx]) {
+                        zBuffer[idx] = zDepth;
+                        pixels[idx] = rgb;
                     }
                 }
 
