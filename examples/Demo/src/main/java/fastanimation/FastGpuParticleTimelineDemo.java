@@ -166,33 +166,32 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     layout(local_size_x = 256) in;
                     
                     layout(std430, binding = 0) readonly buffer ParamsBuf {
-                        vec4 params[]; // x: radius, y: speed, z: tilt, w: ecc
-                    };
+                        vec4 params[];
+                    } bufParams;
                     
                     layout(std430, binding = 1) buffer StateBuf {
-                        vec4 posVelA[]; // x: posX, y: posY, z: posZ, w: velX
-                        vec4 posVelB[]; // x: velY, y: velZ, z: angle, w: targetSphereIdx
-                    };
+                        vec4 stateA[];
+                    } bufStateA;
                     
                     layout(std430, binding = 2) readonly buffer SphereBuf {
-                        vec4 spheres[]; // x: sphereX, y: sphereY, z: sphereZ, w: scale
-                    };
+                        vec4 spheres[];
+                    } bufSpheres;
                     
                     layout(std430, binding = 3) readonly buffer UniformBuf {
-                        vec4 timeAndCam; // x: cosY, y: sinY, z: cosP, w: sinP
-                    };
+                        vec4 timeAndCam;
+                    } bufUniforms;
                     
                     void main() {
                         uint id = gl_GlobalInvocationID.x;
                         if (id >= 100000) return;
                         
-                        vec4 p = params[id];
-                        vec4 pva = posVelA[id];
-                        vec4 pvb = posVelB[id];
+                        vec4 p = bufParams.params[id];
+                        vec4 pva = bufStateA.stateA[id * 2];
+                        vec4 pvb = bufStateA.stateA[id * 2 + 1];
                         
                         float angle = pvb.z + p.y;
                         int sIdx = int(pvb.w);
-                        vec4 sph = spheres[sIdx];
+                        vec4 sph = bufSpheres.spheres[sIdx];
                         
                         float rad = p.x * sph.w;
                         float tilt = p.z;
@@ -209,8 +208,8 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                         vel = (vel + (target - pos) * 0.025) * 0.92;
                         pos += vel;
                         
-                        posVelA[id] = vec4(pos, vel.x);
-                        posVelB[id] = vec4(vel.yz, angle, float(sIdx));
+                        bufStateA.stateA[id * 2] = vec4(pos, vel.x);
+                        bufStateA.stateA[id * 2 + 1] = vec4(vel.yz, angle, float(sIdx));
                     }
                     """;
 
