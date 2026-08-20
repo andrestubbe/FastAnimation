@@ -153,8 +153,8 @@ public class ParticleGPUDemo extends Canvas {
             particleState[sBase] = b.x;
             particleState[sBase + 1] = b.y;
             particleState[sBase + 2] = b.z;
-            particleState[sBase + 3] = 0;
-            particleState[sBase + 4] = 0;
+            particleState[sBase + 3] = nPhase; // store noisePhase
+            particleState[sBase + 4] = nSpeed; // store noiseSpeed
             particleState[sBase + 5] = 0;
             particleState[sBase + 6] = orbitAng;
             particleState[sBase + 7] = (float) bIdx;
@@ -175,7 +175,7 @@ public class ParticleGPUDemo extends Canvas {
                     } bufParams;
                     
                     layout(std430, binding = 1) buffer StateBuf {
-                        vec4 stateA[]; // stateA[2*i]: pos.xyz, vel.x | stateA[2*i+1]: vel.yz, angle, sphereIdx
+                        vec4 stateA[]; // stateA[2*i]: pos.xyz, noisePhase | stateA[2*i+1]: noiseSpeed, velZ, angle, sphereIdx
                     } bufStateA;
                     
                     layout(std430, binding = 2) readonly buffer SphereBuf {
@@ -199,6 +199,7 @@ public class ParticleGPUDemo extends Canvas {
                         vec4 pvb = bufStateA.stateA[id * 2 + 1];
                         
                         float angle = pvb.z + p.y;
+                        float nPhase = pva.w + pvb.x;
                         int sIdx = int(pvb.w);
                         vec4 sph = bufSpheres.spheres[sIdx];
                         
@@ -206,10 +207,9 @@ public class ParticleGPUDemo extends Canvas {
                         float tilt = p.z;
                         float ecc = p.w;
                         
-                        float phase = float(id) * 0.05 + angle * 2.0;
-                        float wobbleX = sin(phase) * 28.0;
-                        float wobbleY = cos(phase * 1.3) * 28.0;
-                        float wobbleZ = sin(phase * 0.7) * 28.0;
+                        float wobbleX = sin(nPhase) * 28.0;
+                        float wobbleY = cos(nPhase * 1.3) * 28.0;
+                        float wobbleZ = sin(nPhase * 0.7) * 28.0;
                         
                         float ox = (cos(angle) * rad * ecc) + wobbleX;
                         float oy = (sin(angle) * cos(tilt) * rad) + wobbleY;
@@ -217,13 +217,11 @@ public class ParticleGPUDemo extends Canvas {
                         
                         vec3 target = sph.xyz + vec3(ox, oy, oz);
                         vec3 pos = pva.xyz;
-                        vec3 vel = vec3(pva.w, pvb.x, pvb.y);
                         
-                        vel = (vel + (target - pos) * 0.025) * 0.92;
-                        pos += vel;
+                        pos += (target - pos) * 0.15;
                         
-                        bufStateA.stateA[id * 2] = vec4(pos, vel.x);
-                        bufStateA.stateA[id * 2 + 1] = vec4(vel.yz, angle, float(sIdx));
+                        bufStateA.stateA[id * 2] = vec4(pos, nPhase);
+                        bufStateA.stateA[id * 2 + 1] = vec4(pvb.x, 0.0, angle, float(sIdx));
                         
                         // GPU Camera Transform & Projection
                         float cosY = bufUniforms.timeAndCam.x;
@@ -551,10 +549,40 @@ public class ParticleGPUDemo extends Canvas {
                     int cb = (int) (38 + (sb - 38) * fog);
                     int rgb = (cr << 16) | (cg << 8) | cb;
 
-                    int idx = sy * WIDTH + sx;
-                    if (zDepth < zBuffer[idx]) {
-                        zBuffer[idx] = zDepth;
-                        pixels[idx] = rgb;
+                    float scale = FOV / zDepth;
+                    float pSize = particleBaseSize[i] * scale;
+                    int rad = (int) Math.max(1, pSize);
+
+                    if (rad <= 1) {
+                        int idx = sy * WIDTH + sx;
+                        if (zDepth < zBuffer[idx]) {
+                            zBuffer[idx] = zDepth;
+                            pixels[idx] = rgb;
+                        }
+                    } else {
+                        int radSq = rad * rad;
+                        int minX = Math.max(0, sx - rad);
+                        int maxX = Math.min(WIDTH - 1, sx + rad);
+                        int minY = Math.max(0, sy - rad);
+                        int maxY = Math.min(HEIGHT - 1, sy + rad);
+
+                        for (int rpy = minY; rpy <= maxY; rpy++) {
+                            int dy = rpy - sy;
+                            int dySq = dy * dy;
+                            int rowOffset = rpy * WIDTH;
+
+                            for (int rpx = minX; rpx <= maxX; rpx++) {
+                                int dx = rpx - sx;
+                                int distSq = dx * dx + dySq;
+                                if (distSq <= radSq) {
+                                    int idx = rowOffset + rpx;
+                                    if (zDepth < zBuffer[idx]) {
+                                        zBuffer[idx] = zDepth;
+                                        pixels[idx] = rgb;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
