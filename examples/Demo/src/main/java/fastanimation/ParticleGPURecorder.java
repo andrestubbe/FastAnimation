@@ -506,7 +506,7 @@ public class ParticleGPURecorder {
                             float pixelZ = ball.zDepth - dz;
 
                             int idx = rowOffset + px;
-                            if (pixelZ < zBuffer[idx] + 2.0f) {
+                            if (pixelZ <= zBuffer[idx]) {
                                 if (alpha >= 0.99f) {
                                     zBuffer[idx] = pixelZ;
                                     pixels[idx] = rgb;
@@ -603,9 +603,9 @@ public class ParticleGPURecorder {
                                         int distSq = dx * dx + dySq;
                                         if (distSq <= radSq) {
                                             float dist = (float) Math.sqrt(distSq);
-                                            float alpha = Math.min(1.0f, rad - dist + 0.6f);
+                                            float alpha = Math.min(1.0f, (float) rad - dist + 0.6f);
                                             int idx = rowOffset + rpx;
-                                            if (zDepth < zBuffer[idx]) {
+                                            if (zDepth <= zBuffer[idx]) {
                                                 if (alpha >= 0.98f) {
                                                     zBuffer[idx] = zDepth;
                                                     pixels[idx] = rgb;
