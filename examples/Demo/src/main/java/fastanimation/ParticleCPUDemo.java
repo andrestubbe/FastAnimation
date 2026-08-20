@@ -497,7 +497,7 @@ public class ParticleCPUDemo extends Canvas {
                 if (now - lastFpsTime >= 1_000_000_000L) {
                     int fps = frames;
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation + FastGPU — 300 Spheres + 50,000 Particles | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation + FastTween (Pure CPU) — 300 Spheres + 50,000 Particles | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
@@ -521,7 +521,7 @@ public class ParticleCPUDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation + FastGPU — 300 Spheres + 50,000 Particles");
+            JFrame frame = new JFrame("FastAnimation + FastTween (Pure CPU) — 300 Spheres + 50,000 Particles");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
