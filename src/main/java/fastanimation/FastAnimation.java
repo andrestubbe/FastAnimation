@@ -21,6 +21,13 @@ public final class FastAnimation {
     }
 
     /**
+     * Advances the animation timeline by deltaMs (for offline recording or manual stepping).
+     */
+    public static void step(float deltaMs) {
+        AnimationEngine.step(deltaMs);
+    }
+
+    /**
      * Creates a sequence of tweens.
      */
     public static Animation sequence(Tween... tweens) {
