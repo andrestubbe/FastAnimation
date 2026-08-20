@@ -76,6 +76,8 @@ public class ParticleGPUDemo extends Canvas {
     private final float[] sphereBufferData = new float[BALL_COUNT * 4];
     private final float[] globalUniforms = new float[16];
 
+    private final float[] compactOutputData = new float[PARTICLE_COUNT * 4];
+
     private BufferedImage screenBuffer;
     private int[] pixels;
     private final float[] zBuffer = new float[WIDTH * HEIGHT];
@@ -86,6 +88,7 @@ public class ParticleGPUDemo extends Canvas {
     private FastGPUBuffer gpuStateBuffer;
     private FastGPUBuffer gpuSpheresBuffer;
     private FastGPUBuffer gpuUniformsBuffer;
+    private FastGPUBuffer gpuOutputBuffer;
     private FastGPUKernel particlePhysicsKernel;
     private boolean gpuActive = false;
 
@@ -180,8 +183,12 @@ public class ParticleGPUDemo extends Canvas {
                     } bufSpheres;
                     
                     layout(std430, binding = 3) readonly buffer UniformBuf {
-                        vec4 timeAndCam; // x: lightPhase, y: ambientPhase
+                        vec4 timeAndCam;
                     } bufUniforms;
+                    
+                    layout(std430, binding = 4) writeonly buffer OutputBuf {
+                        vec4 compactPos[]; // x: posX, y: posY, z: posZ, w: sphereIdx (packed compact output)
+                    } bufOutput;
                     
                     void main() {
                         uint id = gl_GlobalInvocationID.x;
@@ -217,6 +224,7 @@ public class ParticleGPUDemo extends Canvas {
                         
                         bufStateA.stateA[id * 2] = vec4(pos, vel.x);
                         bufStateA.stateA[id * 2 + 1] = vec4(vel.yz, angle, float(sIdx));
+                        bufOutput.compactPos[id] = vec4(pos, float(sIdx));
                     }
                     """;
 
@@ -225,14 +233,15 @@ public class ParticleGPUDemo extends Canvas {
             gpuStateBuffer = gpu.allocFloatBuffer(PARTICLE_COUNT * 8);
             gpuSpheresBuffer = gpu.allocFloatBuffer(BALL_COUNT * 4);
             gpuUniformsBuffer = gpu.allocFloatBuffer(16);
+            gpuOutputBuffer = gpu.allocFloatBuffer(PARTICLE_COUNT * 4);
 
             gpuParamsBuffer.upload(particleParams);
             gpuStateBuffer.upload(particleState);
 
             gpuActive = true;
             System.out.println("==================================================================");
-            System.out.println("⚡ FastGPU HARDWARE COMPUTE PIPELINE INITIALIZED (100,000 Particles)");
-            System.out.println("Vulkan Compute Pipeline: READY");
+            System.out.println("⚡ FastGPU HARDWARE COMPUTE PIPELINE INITIALIZED (50,000 Particles)");
+            System.out.println("Vulkan Compute Pipeline: READY (Compact Download Optimization Active)");
             System.out.println("==================================================================");
         } catch (Throwable t) {
             System.err.println("❌ FastGPU Hardware Error: " + t.getMessage());
@@ -499,22 +508,23 @@ public class ParticleGPUDemo extends Canvas {
                     gpu.dispatch(
                             particlePhysicsKernel,
                             DispatchSize.of1D(PARTICLE_COUNT / 256 + 1),
-                            KernelArgs.of(gpuParamsBuffer, gpuStateBuffer, gpuSpheresBuffer, gpuUniformsBuffer)
+                            KernelArgs.of(gpuParamsBuffer, gpuStateBuffer, gpuSpheresBuffer, gpuUniformsBuffer, gpuOutputBuffer)
                     );
-                    gpuStateBuffer.download(particleState);
+                    gpuOutputBuffer.download(compactOutputData);
                 }
 
                 for (int i = 0; i < PARTICLE_COUNT; i++) {
-                    int sBase = i * 8;
                     float px, py, pz;
                     int bIdx;
 
                     if (gpuActive) {
-                        px = particleState[sBase];
-                        py = particleState[sBase + 1];
-                        pz = particleState[sBase + 2];
-                        bIdx = (int) particleState[sBase + 7];
+                        int cBase = i * 4;
+                        px = compactOutputData[cBase];
+                        py = compactOutputData[cBase + 1];
+                        pz = compactOutputData[cBase + 2];
+                        bIdx = (int) compactOutputData[cBase + 3];
                     } else {
+                        int sBase = i * 8;
                         bIdx = (int) particleState[sBase + 7];
                         Ball parent = balls.get(bIdx);
                         float angle = particleState[sBase + 6] + particleParams[i * 4 + 1];
