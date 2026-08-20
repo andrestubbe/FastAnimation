@@ -454,62 +454,60 @@ public class ParticleGPURecorder {
                 if (ball.zDepth <= 1.0f) continue;
 
                 float scale = FOV / ball.zDepth;
-                int sx = (int) (WIDTH / 2f + ball.rotX * scale);
-                int sy = (int) (HEIGHT / 2f + ball.rotY * scale);
-                int radius = (int) (48f * scale * ball.radiusScale);
+                float centerFX = WIDTH / 2f + ball.rotX * scale;
+                float centerFY = HEIGHT / 2f + ball.rotY * scale;
+                float radiusF = 48f * scale * ball.radiusScale;
 
-                if (radius <= 0) continue;
+                if (radiusF <= 0.5f) continue;
 
                 float fog = 1.0f - ((ball.zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
                 fog = Math.max(0.35f, Math.min(1.0f, fog));
 
                 int rgb = computeRetroColor(bx, by, bz, fog, ambR, ambG, ambB, mEx, mEy, mEz, cEx, cEy, cEz, aEx, aEy, aEz);
 
-                int radOuter = radius + 1;
-                int radOuterSq = radOuter * radOuter;
-                int radInner = Math.max(0, radius - 1);
-                int radInnerSq = radInner * radInner;
-                int minX = Math.max(0, sx - radOuter);
-                int maxX = Math.min(WIDTH - 1, sx + radOuter);
-                int minY = Math.max(0, sy - radOuter);
-                int maxY = Math.min(HEIGHT - 1, sy + radOuter);
+                int minX = Math.max(0, (int) Math.floor(centerFX - radiusF - 1.5f));
+                int maxX = Math.min(WIDTH - 1, (int) Math.ceil(centerFX + radiusF + 1.5f));
+                int minY = Math.max(0, (int) Math.floor(centerFY - radiusF - 1.5f));
+                int maxY = Math.min(HEIGHT - 1, (int) Math.ceil(centerFY + radiusF + 1.5f));
+                float radSqF = radiusF * radiusF;
+                float radInnerSqF = Math.max(0.0f, (radiusF - 1.0f) * (radiusF - 1.0f));
+                float radOuterSqF = (radiusF + 1.2f) * (radiusF + 1.2f);
 
                 for (int py = minY; py <= maxY; py++) {
-                    int dy = py - sy;
-                    int dySq = dy * dy;
+                    float dyF = (float) py + 0.5f - centerFY;
                     int rowOffset = py * WIDTH;
 
                     for (int px = minX; px <= maxX; px++) {
-                        int dx = px - sx;
-                        int distSq = dx * dx + dySq;
-                        if (distSq <= radOuterSq) {
+                        float dxF = (float) px + 0.5f - centerFX;
+                        float distSq = dxF * dxF + dyF * dyF;
+
+                        if (distSq <= radOuterSqF) {
                             float alpha;
-                            if (distSq <= radInnerSq) {
+                            if (distSq <= radInnerSqF) {
                                 alpha = 1.0f;
                             } else {
-                                // 16x16 Subpixel Grid Sampling (256 Samples per boundary pixel)
                                 int hits = 0;
-                                for (int syi = 0; syi < 16; syi++) {
-                                    float subY = (float) dy - 0.5f + (syi + 0.5f) / 16.0f;
+                                for (int syi = 0; syi < 8; syi++) {
+                                    float subY = (float) py + (syi + 0.5f) / 8.0f - centerFY;
                                     float subYSq = subY * subY;
-                                    for (int sxi = 0; sxi < 16; sxi++) {
-                                        float subX = (float) dx - 0.5f + (sxi + 0.5f) / 16.0f;
-                                        if (subX * subX + subYSq <= (float)(radius * radius)) {
+                                    for (int sxi = 0; sxi < 8; sxi++) {
+                                        float subX = (float) px + (sxi + 0.5f) / 8.0f - centerFX;
+                                        if (subX * subX + subYSq <= radSqF) {
                                             hits++;
                                         }
                                     }
                                 }
-                                alpha = (float) hits / 256.0f;
+                                alpha = (float) hits / 64.0f;
                             }
 
-                            if (alpha <= 0.001f) continue;
+                            if (alpha <= 0.005f) continue;
 
-                            float dz = (float) Math.sqrt(Math.max(0.0f, (float)(radius * radius) - distSq)) / scale;
+                            float dz = (float) Math.sqrt(Math.max(0.0f, radSqF - distSq)) / scale;
                             float pixelZ = ball.zDepth - dz;
 
                             int idx = rowOffset + px;
                             if (pixelZ < zBuffer[idx] + 2.0f) {
-                                if (alpha >= 0.999f) {
+                                if (alpha >= 0.99f) {
                                     zBuffer[idx] = pixelZ;
                                     pixels[idx] = rgb;
                                 } else {
