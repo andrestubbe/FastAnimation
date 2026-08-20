@@ -116,9 +116,9 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 
 | Case | Java Example | Launcher | Description |
 |---|---|---|---|
+| **Vulkan Compute Particle Swarm (100k)** | [ParticleGPUDemo.java](examples/Demo/src/main/java/fastanimation/ParticleGPUDemo.java) | `run-particles-GPU-demo.bat` | 300 FastTween spheres + 100,000 particles (Vulkan GLSL Compute Kernel for physics & 3D matrices). |
+| **Pure CPU Software Particle Swarm (50k)** | [ParticleCPUDemo.java](examples/Demo/src/main/java/fastanimation/ParticleCPUDemo.java) | `run-particles-CPU-demo.bat` | 300 FastTween spheres + 50,000 harmonic particles (Pure CPU Software Rasterizer). |
 | **Pseudo-3D Particle Realm** | [Demo.java](examples/Demo/src/main/java/fastanimation/Demo.java) | `run-demo.bat` | 3D-to-2D projection with 300 independently tweened objects. |
-| **Spheres + Swarm Particles** | [ParticleTimelineDemo.java](examples/Demo/src/main/java/fastanimation/ParticleTimelineDemo.java) | `run-demo-particles.bat` | 300 FastTween spheres + 50,000 harmonic particles. |
-| **Pure Particle Cloud (50k)** | [PureParticleCloudDemo.java](examples/Demo/src/main/java/fastanimation/PureParticleCloudDemo.java) | `run-demo-cloud.bat` | 50,000 pure white 3D particles radiating from the core. |
 
 ---
 
