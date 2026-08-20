@@ -78,6 +78,14 @@ public class ParticleGPUDemo extends Canvas {
 
     private final float[] compactOutputData = new float[PARTICLE_COUNT * 4];
 
+    private static final int CPU_CORES = Math.max(2, Runtime.getRuntime().availableProcessors());
+    private final java.util.concurrent.Phaser rasterPhaser = new java.util.concurrent.Phaser(1);
+    private final java.util.concurrent.ExecutorService rasterPool = java.util.concurrent.Executors.newFixedThreadPool(CPU_CORES, r -> {
+        Thread t = new Thread(r, "FastGPU-Raster-Worker");
+        t.setDaemon(true);
+        return t;
+    });
+
     private BufferedImage screenBuffer;
     private int[] pixels;
     private final float[] zBuffer = new float[WIDTH * HEIGHT];
@@ -528,63 +536,78 @@ public class ParticleGPUDemo extends Canvas {
                     gpuOutputBuffer.download(compactOutputData);
                 }
 
-                for (int i = 0; i < PARTICLE_COUNT; i++) {
-                    int cBase = i * 4;
-                    int sx = (int) compactOutputData[cBase];
-                    int sy = (int) compactOutputData[cBase + 1];
-                    float zDepth = compactOutputData[cBase + 2];
-                    int bIdx = (int) compactOutputData[cBase + 3];
+                int chunkSize = (PARTICLE_COUNT + CPU_CORES - 1) / CPU_CORES;
+                rasterPhaser.bulkRegister(CPU_CORES);
 
-                    if (zDepth <= 1.0f || sx < 0 || sx >= WIDTH || sy < 0 || sy >= HEIGHT) continue;
+                for (int c = 0; c < CPU_CORES; c++) {
+                    final int startIdx = c * chunkSize;
+                    final int endIdx = Math.min(PARTICLE_COUNT, startIdx + chunkSize);
 
-                    float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
-                    fog = Math.max(0.35f, Math.min(1.0f, fog));
+                    rasterPool.execute(() -> {
+                        try {
+                            for (int i = startIdx; i < endIdx; i++) {
+                                int cBase = i * 4;
+                                int sx = (int) compactOutputData[cBase];
+                                int sy = (int) compactOutputData[cBase + 1];
+                                float zDepth = compactOutputData[cBase + 2];
+                                int bIdx = (int) compactOutputData[cBase + 3];
 
-                    int baseColor = sphereBaseColors[bIdx % BALL_COUNT];
-                    int sr = (baseColor >> 16) & 0xFF;
-                    int sg = (baseColor >> 8) & 0xFF;
-                    int sb = baseColor & 0xFF;
-                    int cr = (int) (26 + (sr - 26) * fog);
-                    int cg = (int) (27 + (sg - 27) * fog);
-                    int cb = (int) (38 + (sb - 38) * fog);
-                    int rgb = (cr << 16) | (cg << 8) | cb;
+                                if (zDepth <= 1.0f || sx < 0 || sx >= WIDTH || sy < 0 || sy >= HEIGHT) continue;
 
-                    float scale = FOV / zDepth;
-                    float pSize = particleBaseSize[i] * scale;
-                    int rad = (int) Math.max(1, pSize);
+                                float fog = 1.0f - ((zDepth - FOG_NEAR) / (FOG_FAR - FOG_NEAR));
+                                fog = Math.max(0.35f, Math.min(1.0f, fog));
 
-                    if (rad <= 1) {
-                        int idx = sy * WIDTH + sx;
-                        if (zDepth < zBuffer[idx]) {
-                            zBuffer[idx] = zDepth;
-                            pixels[idx] = rgb;
-                        }
-                    } else {
-                        int radSq = rad * rad;
-                        int minX = Math.max(0, sx - rad);
-                        int maxX = Math.min(WIDTH - 1, sx + rad);
-                        int minY = Math.max(0, sy - rad);
-                        int maxY = Math.min(HEIGHT - 1, sy + rad);
+                                int baseColor = sphereBaseColors[bIdx % BALL_COUNT];
+                                int sr = (baseColor >> 16) & 0xFF;
+                                int sg = (baseColor >> 8) & 0xFF;
+                                int sb = baseColor & 0xFF;
+                                int cr = (int) (26 + (sr - 26) * fog);
+                                int cg = (int) (27 + (sg - 27) * fog);
+                                int cb = (int) (38 + (sb - 38) * fog);
+                                int rgb = (cr << 16) | (cg << 8) | cb;
 
-                        for (int rpy = minY; rpy <= maxY; rpy++) {
-                            int dy = rpy - sy;
-                            int dySq = dy * dy;
-                            int rowOffset = rpy * WIDTH;
+                                float scale = FOV / zDepth;
+                                float pSize = particleBaseSize[i] * scale;
+                                int rad = (int) Math.max(1, pSize);
 
-                            for (int rpx = minX; rpx <= maxX; rpx++) {
-                                int dx = rpx - sx;
-                                int distSq = dx * dx + dySq;
-                                if (distSq <= radSq) {
-                                    int idx = rowOffset + rpx;
+                                if (rad <= 1) {
+                                    int idx = sy * WIDTH + sx;
                                     if (zDepth < zBuffer[idx]) {
                                         zBuffer[idx] = zDepth;
                                         pixels[idx] = rgb;
                                     }
+                                } else {
+                                    int radSq = rad * rad;
+                                    int minX = Math.max(0, sx - rad);
+                                    int maxX = Math.min(WIDTH - 1, sx + rad);
+                                    int minY = Math.max(0, sy - rad);
+                                    int maxY = Math.min(HEIGHT - 1, sy + rad);
+
+                                    for (int rpy = minY; rpy <= maxY; rpy++) {
+                                        int dy = rpy - sy;
+                                        int dySq = dy * dy;
+                                        int rowOffset = rpy * WIDTH;
+
+                                        for (int rpx = minX; rpx <= maxX; rpx++) {
+                                            int dx = rpx - sx;
+                                            int distSq = dx * dx + dySq;
+                                            if (distSq <= radSq) {
+                                                int idx = rowOffset + rpx;
+                                                if (zDepth < zBuffer[idx]) {
+                                                    zBuffer[idx] = zDepth;
+                                                    pixels[idx] = rgb;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                        } finally {
+                            rasterPhaser.arriveAndDeregister();
                         }
-                    }
+                    });
                 }
+                rasterPhaser.arriveAndAwaitAdvance();
 
                 Graphics g = bs.getDrawGraphics();
                 g.drawImage(screenBuffer, 0, 0, null);
