@@ -72,6 +72,7 @@ public class FastGpuParticleTimelineDemo extends Canvas {
 
     private final float[] particleParams = new float[PARTICLE_COUNT * 4];
     private final float[] particleState = new float[PARTICLE_COUNT * 8];
+    private final float[] particleBaseSize = new float[PARTICLE_COUNT];
     private final float[] sphereBufferData = new float[BALL_COUNT * 4];
     private final float[] globalUniforms = new float[16];
 
@@ -137,6 +138,7 @@ public class FastGpuParticleTimelineDemo extends Canvas {
             float sRoll = r.nextFloat();
             if (sRoll > 0.94f) pSize = 3.5f + r.nextFloat() * 2.0f;
             else if (sRoll > 0.70f) pSize = 2.0f + r.nextFloat() * 1.2f;
+            particleBaseSize[i] = pSize;
 
             int pBase = i * 4;
             particleParams[pBase] = orbitRad;
@@ -166,19 +168,19 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     layout(local_size_x = 256) in;
                     
                     layout(std430, binding = 0) readonly buffer ParamsBuf {
-                        vec4 params[];
+                        vec4 params[]; // x: radius, y: speed, z: tilt, w: ecc
                     } bufParams;
                     
                     layout(std430, binding = 1) buffer StateBuf {
-                        vec4 stateA[];
+                        vec4 stateA[]; // stateA[2*i]: pos.xyz, vel.x | stateA[2*i+1]: vel.yz, angle, sphereIdx
                     } bufStateA;
                     
                     layout(std430, binding = 2) readonly buffer SphereBuf {
-                        vec4 spheres[];
+                        vec4 spheres[]; // x: sphereX, y: sphereY, z: sphereZ, w: scale
                     } bufSpheres;
                     
                     layout(std430, binding = 3) readonly buffer UniformBuf {
-                        vec4 timeAndCam;
+                        vec4 timeAndCam; // x: lightPhase, y: ambientPhase
                     } bufUniforms;
                     
                     void main() {
@@ -197,9 +199,14 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                         float tilt = p.z;
                         float ecc = p.w;
                         
-                        float ox = cos(angle) * rad * ecc;
-                        float oy = sin(angle) * cos(tilt) * rad;
-                        float oz = sin(angle) * sin(tilt) * rad;
+                        float phase = float(id) * 0.05 + angle * 2.0;
+                        float wobbleX = sin(phase) * 28.0;
+                        float wobbleY = cos(phase * 1.3) * 28.0;
+                        float wobbleZ = sin(phase * 0.7) * 28.0;
+                        
+                        float ox = (cos(angle) * rad * ecc) + wobbleX;
+                        float oy = (sin(angle) * cos(tilt) * rad) + wobbleY;
+                        float oz = (sin(angle) * sin(tilt) * rad) + wobbleZ;
                         
                         vec3 target = sph.xyz + vec3(ox, oy, oz);
                         vec3 pos = pva.xyz;
@@ -566,11 +573,39 @@ public class FastGpuParticleTimelineDemo extends Canvas {
                     int sx = (int) (WIDTH / 2f + rx * scale);
                     int sy = (int) (HEIGHT / 2f + ry * scale);
 
-                    if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
-                        int idx = sy * WIDTH + sx;
-                        if (zDepth < zBuffer[idx]) {
-                            zBuffer[idx] = zDepth;
-                            pixels[idx] = rgb;
+                    float pSize = particleBaseSize[i] * scale;
+                    int rad = (int) Math.max(1, pSize);
+                    if (rad <= 1) {
+                        if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT) {
+                            int idx = sy * WIDTH + sx;
+                            if (zDepth < zBuffer[idx]) {
+                                zBuffer[idx] = zDepth;
+                                pixels[idx] = rgb;
+                            }
+                        }
+                    } else {
+                        int radSq = rad * rad;
+                        int minX = Math.max(0, sx - rad);
+                        int maxX = Math.min(WIDTH - 1, sx + rad);
+                        int minY = Math.max(0, sy - rad);
+                        int maxY = Math.min(HEIGHT - 1, sy + rad);
+
+                        for (int rpy = minY; rpy <= maxY; rpy++) {
+                            int dy = rpy - sy;
+                            int dySq = dy * dy;
+                            int rowOffset = rpy * WIDTH;
+
+                            for (int rpx = minX; rpx <= maxX; rpx++) {
+                                int dx = rpx - sx;
+                                int distSq = dx * dx + dySq;
+                                if (distSq <= radSq) {
+                                    int idx = rowOffset + rpx;
+                                    if (zDepth < zBuffer[idx]) {
+                                        zBuffer[idx] = zDepth;
+                                        pixels[idx] = rgb;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
