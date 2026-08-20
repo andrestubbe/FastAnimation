@@ -44,6 +44,9 @@ public final class AnimationEngine {
     }
 
     private static void startEngine() {
+        if (mode == HeartbeatMode.MANUAL) {
+            return;
+        }
         if (mode == HeartbeatMode.JAVA) {
             startJavaEngine();
         } else {
