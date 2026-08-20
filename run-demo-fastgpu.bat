@@ -13,7 +13,7 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
-echo Running FastGPU Particle Timeline Demo (100,000 Particles)...
+echo Running FastGPU Particle Timeline Demo (200,000 Particles)...
 cd examples\Demo
 call mvn compile exec:java -Dexec.mainClass="fastanimation.ParticleGPUDemo" -q
 if %ERRORLEVEL% NEQ 0 (
