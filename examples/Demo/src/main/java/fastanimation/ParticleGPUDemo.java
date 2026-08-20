@@ -501,13 +501,24 @@ public class ParticleGPUDemo extends Canvas {
                             int dx = px - sx;
                             int distSq = dx * dx + dySq;
                             if (distSq <= radSq) {
+                                float dist = (float) Math.sqrt(distSq);
+                                float alpha = Math.min(1.0f, radius - dist + 0.6f);
                                 float dz = (float) Math.sqrt(radSq - distSq) / scale;
                                 float pixelZ = ball.zDepth - dz;
 
                                 int idx = rowOffset + px;
                                 if (pixelZ < zBuffer[idx]) {
-                                    zBuffer[idx] = pixelZ;
-                                    pixels[idx] = rgb;
+                                    if (alpha >= 0.98f) {
+                                        zBuffer[idx] = pixelZ;
+                                        pixels[idx] = rgb;
+                                    } else {
+                                        int old = pixels[idx];
+                                        int or = (old >> 16) & 0xFF, og = (old >> 8) & 0xFF, ob = old & 0xFF;
+                                        int nr = (rgb >> 16) & 0xFF, ng = (rgb >> 8) & 0xFF, nb = rgb & 0xFF;
+                                        pixels[idx] = (((int)(or + (nr - or) * alpha)) << 16) |
+                                                      (((int)(og + (ng - og) * alpha)) << 8)  |
+                                                      ((int)(ob + (nb - ob) * alpha));
+                                    }
                                 }
                             }
                         }
@@ -592,10 +603,21 @@ public class ParticleGPUDemo extends Canvas {
                                             int dx = rpx - sx;
                                             int distSq = dx * dx + dySq;
                                             if (distSq <= radSq) {
+                                                float dist = (float) Math.sqrt(distSq);
+                                                float alpha = Math.min(1.0f, rad - dist + 0.6f);
                                                 int idx = rowOffset + rpx;
                                                 if (zDepth < zBuffer[idx]) {
-                                                    zBuffer[idx] = zDepth;
-                                                    pixels[idx] = rgb;
+                                                    if (alpha >= 0.98f) {
+                                                        zBuffer[idx] = zDepth;
+                                                        pixels[idx] = rgb;
+                                                    } else {
+                                                        int old = pixels[idx];
+                                                        int or = (old >> 16) & 0xFF, og = (old >> 8) & 0xFF, ob = old & 0xFF;
+                                                        int nr = (rgb >> 16) & 0xFF, ng = (rgb >> 8) & 0xFF, nb = rgb & 0xFF;
+                                                        pixels[idx] = (((int)(or + (nr - or) * alpha)) << 16) |
+                                                                      (((int)(og + (ng - og) * alpha)) << 8)  |
+                                                                      ((int)(ob + (nb - ob) * alpha));
+                                                    }
                                                 }
                                             }
                                         }
