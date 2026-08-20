@@ -10,7 +10,7 @@ import java.util.List;
  */
 public final class AnimationEngine {
 
-    public enum HeartbeatMode {JAVA, NATIVE_MM, NATIVE_VSYNC}
+    public enum HeartbeatMode {JAVA, NATIVE_MM, NATIVE_VSYNC, MANUAL}
 
     private static final List<Animation> animations = new ArrayList<>();
     private static final List<Animation> toAdd = new ArrayList<>();
@@ -103,6 +103,10 @@ public final class AnimationEngine {
         } catch (InterruptedException ignored) {
         }
         startEngine();
+    }
+
+    public static void step(float deltaMs) {
+        tick(deltaMs);
     }
 
     private static void tick(float deltaMs) {

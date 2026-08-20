@@ -25,9 +25,9 @@ Thumbs.db
 *.swp
 *~
 
-# IntelliJ IDEA
-.idea/
-*.iml
+# Render Frames
+docs/render_frames/
+render_frames/
 *.ipr
 *.iws
 
