@@ -27,7 +27,7 @@ public class ParticleGPUDemo extends Canvas {
     private static final int HEIGHT = 610;
 
     private static final int BALL_COUNT = 300;
-    private static final int PARTICLE_COUNT = 200_000;
+    private static final int PARTICLE_COUNT = 100_000;
     private static final float CUBE_SIZE = 600f;
     private static final float FOV = 450f;
 
@@ -200,7 +200,7 @@ public class ParticleGPUDemo extends Canvas {
                     
                     void main() {
                         uint id = gl_GlobalInvocationID.x;
-                        if (id >= 200000) return;
+                        if (id >= 100000) return;
                         
                         vec4 p = bufParams.params[id];
                         vec4 pva = bufStateA.stateA[id * 2];
@@ -621,7 +621,7 @@ public class ParticleGPUDemo extends Canvas {
                     int fps = frames;
                     String engineTag = gpuActive ? "FastGPU Vulkan/GLSL Compute" : "FastJava Host Pipeline";
                     SwingUtilities.invokeLater(() ->
-                            parentFrame.setTitle("FastAnimation + FastTween + FastGPU — 200,000 Particles (" + engineTag + ") | FPS: " + fps)
+                            parentFrame.setTitle("FastAnimation + FastTween + FastGPU — 100,000 Particles (" + engineTag + ") | FPS: " + fps)
                     );
                     frames = 0;
                     lastFpsTime = now;
@@ -645,7 +645,7 @@ public class ParticleGPUDemo extends Canvas {
         System.setProperty("sun.awt.noerasebackground", "true");
 
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("FastAnimation + FastTween + FastGPU — 200,000 Particles");
+            JFrame frame = new JFrame("FastAnimation + FastTween + FastGPU — 100,000 Particles");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setIgnoreRepaint(true);
