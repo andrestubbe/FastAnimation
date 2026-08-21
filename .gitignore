@@ -25,11 +25,15 @@ Thumbs.db
 *.swp
 *~
 
-# Render Frames
+# Render Frames & Recorder Tools (Local Only)
 docs/render_frames/
 render_frames/
-*.ipr
-*.iws
+*render-lossless-frames.bat
+*create-lossless-mp4.bat
+*ParticleGPURecorder.java
+docs/ParticleTimeline_Lossless_60fps.mp4
+docs/ParticleTimeline_WindowsPlayer.mp4
+docs/ParticleTimeline_60fps.mp4
 
 # Release files (local only)
 RELEASE.txt

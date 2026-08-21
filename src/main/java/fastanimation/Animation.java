@@ -125,11 +125,11 @@ public class Animation {
                 : 1.0f;
 
         if (mode == Mode.SEQUENCE) {
-            updateSequence();
+            updateSequence(deltaMs);
         } else if (mode == Mode.PARALLEL) {
-            updateParallel();
+            updateParallel(deltaMs);
         } else if (mode == Mode.TIMELINE) {
-            updateTimeline(progress);
+            updateTimeline(progress, deltaMs);
         }
 
         if (onUpdate != null) {
@@ -137,7 +137,7 @@ public class Animation {
         }
     }
 
-    private void updateSequence() {
+    private void updateSequence(float deltaMs) {
         int totalItems = tweens.size() + children.size();
         if (currentIndex >= totalItems) {
             handleLoopOrComplete();
@@ -147,10 +147,11 @@ public class Animation {
         boolean currentDone = false;
         if (currentIndex < tweens.size()) {
             Tween tween = tweens.get(currentIndex);
-            tween.update();
+            tween.update(deltaMs);
             currentDone = tween.isComplete();
         } else {
             Animation animation = children.get(currentIndex - tweens.size());
+            animation.update(deltaMs);
             currentDone = animation.isComplete();
         }
 
@@ -161,15 +162,16 @@ public class Animation {
         }
     }
 
-    private void updateParallel() {
+    private void updateParallel(float deltaMs) {
         boolean allDone = true;
         for (Tween tween : tweens) {
-            tween.update();
+            tween.update(deltaMs);
             if (!tween.isComplete()) {
                 allDone = false;
             }
         }
         for (Animation animation : children) {
+            animation.update(deltaMs);
             if (!animation.isComplete()) {
                 allDone = false;
             }
@@ -179,14 +181,14 @@ public class Animation {
         }
     }
 
-    private void updateTimeline(float progress) {
+    private void updateTimeline(float progress, float deltaMs) {
         boolean allDone = true;
         for (Keyframe keyframe : keyframes) {
             if (progress >= keyframe.getProgress()) {
                 if (!keyframe.getTween().isRunning() && !keyframe.getTween().isComplete()) {
                     keyframe.getTween().start();
                 }
-                keyframe.getTween().update();
+                keyframe.getTween().update(deltaMs);
             }
             if (!keyframe.getTween().isComplete()) allDone = false;
         }

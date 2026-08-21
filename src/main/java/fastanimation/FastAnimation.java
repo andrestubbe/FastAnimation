@@ -7,7 +7,7 @@ import fasttween.Tween;
  */
 public final class FastAnimation {
 
-    public static final String VERSION = "0.1.1";
+    public static final String VERSION = "0.1.2";
 
     private FastAnimation() {
         // Utility class
