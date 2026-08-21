@@ -1,5 +1,14 @@
 # FastAnimation Version Changelog
 
+## [0.1.2] — 2026-08-21
+
+### Added
+- **Deterministic Step API**: Added `FastAnimation.step(float deltaMs)` and `Animation.update(float deltaMs)` enabling 100% deterministic, fixed-rate timeline simulation for offline rendering and physics stepping.
+- **Manual Heartbeat Mode**: Added `HeartbeatMode.MANUAL` to completely bypass asynchronous background daemon threads during offline frame-by-frame export.
+- **FastGPU Vulkan Compute Particle Demo**: Added 100,000 particle Vulkan compute demo (`ParticleGPUDemo`) demonstrating genuine GLSL SPIR-V compute kernels for 3D matrices, orbits, and harmonic turbulence.
+
+---
+
 ## [0.1.1] — 2026-08-19
 
 ### Changed
