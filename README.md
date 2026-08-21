@@ -15,9 +15,13 @@ graphics. It is deeply integrated and bundled with **[FastTween](https://github.
 zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
 animations in Java.
  
-[**Watch the Demo**](https://www.youtube.com/watch?v=AMf8z6-36W0) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
+[**Watch GPU Demo (YouTube)**](https://youtu.be/8kulb4byxm4) | [**Watch the Demo**](https://www.youtube.com/watch?v=AMf8z6-36W0) | [**Watch 60 FPS Video (MP4)**](docs/ParticleTimeline_60fps_trimmed.mp4) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
-[![FastAnimation Showcase](docs/screenshot.png)](https://www.youtube.com/watch?v=AMf8z6-36W0)
+https://github.com/user-attachments/assets/docs/ParticleTimeline_60fps_trimmed.mp4
+
+<video src="docs/ParticleTimeline_60fps_trimmed.mp4" controls="controls" width="100%" poster="docs/screenshot.png" autoplay loop muted></video>
+
+[![FastAnimation Showcase](docs/screenshot.png)](https://youtu.be/8kulb4byxm4)
 
 ---
 
@@ -159,7 +163,13 @@ Add the JitPack repository and the dependency to your `pom.xml`:
         <artifactId>fastdwm</artifactId>
         <version>0.1.0</version>
     </dependency>
-    <!-- Optional: High-throughput GPU Compute Shader & Math Pipeline -->
+    <!-- Required Native JNI loader -->
+    <dependency>
+        <groupId>com.github.andrestubbe</groupId>
+        <artifactId>fastcore</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+    <!-- Optional: High-throughput GPU Compute Shader & Math Pipeline (Vulkan SPIR-V) -->
     <dependency>
         <groupId>com.github.andrestubbe</groupId>
         <artifactId>fastgpu</artifactId>
@@ -170,7 +180,7 @@ Add the JitPack repository and the dependency to your `pom.xml`:
 ```
 
 > **Note on FastGPU Integration:**
-> FastGPU is completely **optional**. For high-density particle simulations and hardware compute workloads (see `ParticleCPUDemo` for CPU-only and `ParticleGPUDemo` for Vulkan Compute), FastGPU can be paired with FastAnimation to offload parallel 3D matrix math and particle physics directly to GPU compute pipelines while FastAnimation handles timeline orchestration.
+> `FastGPU` is completely **optional**. It is used to offload massive parallel physics, boid separation, organic turbulence vectors, and 3D matrix math directly to hardware via **Vulkan Compute Shaders (GLSL to SPIR-V)** while `FastAnimation` and `FastTween` orchestrate the timeline. Without `FastGPU`, `FastAnimation` runs identically on pure CPU.
 
 ### Option 2: Gradle (via JitPack)
 
@@ -187,8 +197,9 @@ dependencies {
     implementation 'com.github.andrestubbe:fastexecution:0.1.0'
     // Required for NATIVE_MM and NATIVE_VSYNC
     implementation 'com.github.andrestubbe:fastdwm:0.1.0'
-    implementation 'com.github.andrestubbe:fastcore:v1.0.0'
-    // Optional: High-throughput GPU Compute
+    // Required Native JNI loader
+    implementation 'com.github.andrestubbe:fastcore:0.1.0'
+    // Optional: High-throughput GPU Compute (Vulkan GLSL Compute)
     compileOnly 'com.github.andrestubbe:fastgpu:0.1.0'
 }
 ```
