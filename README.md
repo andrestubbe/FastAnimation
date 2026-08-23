@@ -15,7 +15,7 @@ graphics. It is deeply integrated and bundled with **[FastTween](https://github.
 zero-overhead interpolation engine—to provide a complete, unified toolkit for orchestrating fluid, native-speed
 animations in Java.
  
-[**Watch GPU Demo (YouTube)**](https://youtu.be/8kulb4byxm4) | [**Watch GPU Demo (HQ MP4)**](docs/ParticleTimeline_60fps_trimmed.mp4) | [**Watch Simple Demo**](https://www.youtube.com/watch?v=AMf8z6-36W0) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
+[**Watch GPU Demo (YouTube)**](https://youtu.be/8kulb4byxm4) | [**Watch GPU Demo (HQ MP4)**](https://drive.google.com/file/d/1QpJg8Jd8FYDl50YQ3KltlmUtKxEAvsFQ) | [**Watch Simple Demo**](https://www.youtube.com/watch?v=AMf8z6-36W0) | [**Watch the JMH Benchmark**](https://www.youtube.com/watch?v=eg1fZUYIzIo)
 
 <video src="docs/ParticleTimeline_60fps_trimmed.mp4" controls="controls" width="100%" poster="docs/screenshot.png" autoplay loop muted></video>
 
