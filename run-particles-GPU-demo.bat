@@ -2,6 +2,7 @@
 chcp 65001 >nul
 
 set MAVEN_OPTS=--enable-native-access=ALL-UNNAMED
+if exist "C:\Users\andre\tools\apache-maven-3.9.9\bin" set PATH=C:\Users\andre\tools\apache-maven-3.9.9\bin;%PATH%
 if defined VULKAN_SDK set PATH=%VULKAN_SDK%\Bin;%PATH%
 if exist "C:\Program Files\VulkanSDK\1.4.357.0\Bin" set PATH=C:\Program Files\VulkanSDK\1.4.357.0\Bin;%PATH%
 
