@@ -3,7 +3,7 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 echo ===========================================
-echo FastAnimation Builder (v0.1.0)
+echo FastAnimation Builder (v0.1.2)
 echo ===========================================
 echo.
 
