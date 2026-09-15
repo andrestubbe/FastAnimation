@@ -52,8 +52,8 @@ public class Example {
 - [Features](#features)
 - [Performance Benchmarks](#performance-benchmarks)
 - [API Quick Reference](#api-quick-reference)
-- [Installation](#installation)
 - [Technical Demos & Benchmarks](#technical-demos--benchmarks)
+- [Installation](#installation)
 - [Documentation](#documentation)
 - [Platform Support](#platform-support)
 - [License](#license)
@@ -113,13 +113,14 @@ FastAnimation is rigorously profiled using **JMH** to guarantee zero overhead.
 
 ---
 
-## Technical Examples & Hero Demos
+## Technical Demos & Benchmarks
 
 | Case | Java Example | Launcher | Description |
 |---|---|---|---|
 | **Vulkan Compute Particle Swarm (100k)** | [ParticleGPUDemo.java](examples/Demo/src/main/java/fastanimation/ParticleGPUDemo.java) | `run-particles-GPU-demo.bat` | 300 FastTween spheres + 100,000 particles (Vulkan GLSL Compute Kernel for physics & 3D matrices). |
 | **Pure CPU Software Particle Swarm (50k)** | [ParticleCPUDemo.java](examples/Demo/src/main/java/fastanimation/ParticleCPUDemo.java) | `run-particles-CPU-demo.bat` | 300 FastTween spheres + 50,000 harmonic particles (Pure CPU Software Rasterizer). |
 | **Pseudo-3D Particle Realm** | [Demo.java](examples/Demo/src/main/java/fastanimation/Demo.java) | `run-demo.bat` | 3D-to-2D projection with 300 independently tweened objects. |
+| **JMH Microbenchmark Suite** | [Benchmark.java](examples/Benchmark/src/main/java/fastanimation/Benchmark.java) | `run-benchmark.bat` | OpenJDK JMH throughput test suite measuring raw tick update performance for parallel and sequence timeline modes. |
 
 ---
 
@@ -214,16 +215,6 @@ Download the latest JAR directly to add it to your classpath:
 
 ---
 
-## Technical Demos & Benchmarks
-
-| Case | Java Example | Launcher | Description |
-|---|---|---|---|
-| **Vulkan Compute Particle Swarm (100k)** | [ParticleGPUDemo.java](examples/Demo/src/main/java/fastanimation/ParticleGPUDemo.java) | `run-particles-GPU-demo.bat` | 300 FastTween spheres + 100,000 particles (Vulkan GLSL Compute Kernel for physics & 3D matrices). |
-| **Pure CPU Software Particle Swarm (50k)** | [ParticleCPUDemo.java](examples/Demo/src/main/java/fastanimation/ParticleCPUDemo.java) | `run-particles-CPU-demo.bat` | 300 FastTween spheres + 50,000 harmonic particles (Pure CPU Software Rasterizer). |
-| **Pseudo-3D Particle Realm** | [Demo.java](examples/Demo/src/main/java/fastanimation/Demo.java) | `run-demo.bat` | 3D-to-2D projection with 300 independently tweened objects and native DWM VSync pacing at 120 FPS. |
-| **JMH Microbenchmark Suite** | [Benchmark.java](examples/Benchmark/src/main/java/fastanimation/Benchmark.java) | `run-benchmark.bat` | OpenJDK JMH throughput test suite measuring raw tick update performance for parallel and sequence timeline modes. |
-
----
 
 ## Documentation
 
