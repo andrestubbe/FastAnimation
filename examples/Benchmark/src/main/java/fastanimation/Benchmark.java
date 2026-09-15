@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 3, timeUnit = TimeUnit.SECONDS)
 @Fork(value = 1, jvmArgs = {"-server", "-XX:+UseG1GC", "-Xms256m", "-Xmx256m"})
-public class AnimationBenchmark {
+public class Benchmark {
 
     /** 120 Hz tick delta: 1000 ms / 120 = 8.33 ms. Matches the Demo target. */
     private static final float DELTA_MS = 8.33f;
@@ -54,7 +54,7 @@ public class AnimationBenchmark {
      * Ticks a PARALLEL animation: all 10 tweens are updated in one call.
      * Represents sustained UI / animation-loop throughput at 120 Hz.
      */
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public float benchmarkParallelTracks() {
         parallelAnimation.update(DELTA_MS);
         return sink;
@@ -64,7 +64,7 @@ public class AnimationBenchmark {
      * Ticks a SEQUENCE animation: only the currently active tween is updated.
      * Represents sequential step-through orchestration throughput.
      */
-    @Benchmark
+    @org.openjdk.jmh.annotations.Benchmark
     public float benchmarkSequenceTracks() {
         sequenceAnimation.update(DELTA_MS);
         return sink;

@@ -53,6 +53,7 @@ public class Example {
 - [Performance Benchmarks](#performance-benchmarks)
 - [API Quick Reference](#api-quick-reference)
 - [Installation](#installation)
+- [Technical Demos & Benchmarks](#technical-demos--benchmarks)
 - [Documentation](#documentation)
 - [Platform Support](#platform-support)
 - [License](#license)
@@ -210,6 +211,15 @@ Download the latest JAR directly to add it to your classpath:
 4. 📦 **[fastdwm-0.1.0.jar](https://github.com/andrestubbe/FastDWM/releases/download/0.1.0/fastdwm-0.1.0.jar)** (Required for NATIVE_MM and NATIVE_VSYNC)
 5. 📦 **[fastcore-0.1.0.jar](https://github.com/andrestubbe/FastCore/releases/download/0.1.0/fastcore-0.1.0.jar)** (Required Native JNI loader)
 6. 📦 **[fastgpu-0.1.0.jar](https://github.com/andrestubbe/FastGPU/releases/download/0.1.0/fastgpu-0.1.0.jar)** (Optional: GPU Compute Engine)
+
+---
+
+## Technical Demos & Benchmarks
+
+| Case | Java Example | Launcher | Description |
+|---|---|---|---|
+| **Pseudo-3D Particle Realm Demo** | [Demo.java](examples/Demo/src/main/java/fastanimation/Demo.java) | `run-demo.bat` | Pure Java software rendering with 300 independently tweened particles and native DWM VSync pacing at 120 FPS. |
+| **JMH Microbenchmark Suite** | [Benchmark.java](examples/Benchmark/src/main/java/fastanimation/Benchmark.java) | `run-benchmark.bat` | OpenJDK JMH throughput test suite measuring raw tick update performance for parallel and sequence timeline modes. |
 
 ---
 

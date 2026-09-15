@@ -22,7 +22,7 @@ public class BenchmarkRunner {
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
-                .include("fastanimation\\.AnimationBenchmark")
+                .include("fastanimation\\.Benchmark")
                 .build();
         new Runner(opt).run();
     }
