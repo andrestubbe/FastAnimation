@@ -77,6 +77,13 @@ Standard Java animation approaches (like `javax.swing.Timer`, `JavaFX Timeline`,
 - **Pure Mathematical Execution**: FastAnimation only handles *time and progress*, decoupling the heavy lifting from the UI thread.
 - **Powered by FastTween**: It seamlessly orchestrates [**FastTween**](https://github.com/andrestubbe/FastTween) instances. While FastTween handles the raw interpolation (e.g., smoothly sliding a value from 0 to 100), FastAnimation acts as the conductor, managing sequences, loops, parallel execution, and complex keyframe timelines across millions of concurrent tweens.
 
+| Feature | javax.swing.Timer | JavaFX Timeline | FastAnimation |
+|:---|:---|:---|:---|
+| **Timer Precision** | Coarse (~15 ms Windows OS) | ~1-2 ms UI pulse tick | Sub-millisecond Native VSync / DWM |
+| **Allocation per Tick** | High (Event & Task garbage) | Moderate (Timeline frames) | **Zero GC** (primitive array ring) |
+| **Concurrent Timelines** | Hundreds before lag | Thousands before stutter | **10,000,000+ parallel tweens** |
+| **Decoupled Math Engine**| No (Tied to Swing EDT) | No (Tied to FX Application) | **Yes** (Runs independent of UI thread) |
+
 ---
 
 
